@@ -318,13 +318,15 @@ function makeDb(SUPABASE_URL, SUPABASE_KEY) {
       };
     },
     collection: function(colName) {
-      let _ob = null, _dir = 'asc', _lim = null;
+      let _ob = null, _dir = 'asc', _lim = null, _where = null;
       const self = {
         orderBy: function(f, d) { _ob = f; _dir = d || 'asc'; return self; },
         limit: function(n) { _lim = n; return self; },
+        where: function(field, op, val) { _where = {field, op, val}; return self; },
         _fetch: async function() {
           if (colName === 'users') {
             const parts = [];
+            if (_where) parts.push(_where.field + '=' + _where.op + '.' + encodeURIComponent(_where.val));
             if (_ob) parts.push('order=' + _ob + '.' + _dir + '.nullslast');
             if (_lim) parts.push('limit=' + _lim);
             const rows = await q('arena_users', parts.join('&'));
@@ -550,7 +552,7 @@ function rankLabel(r){if(!r)return'--';if(r===1)return'🥇';if(r===2)return'�
 function startLb(){
   if(!S.db) return;
   if(S.lbUnsub) S.lbUnsub();
-  S.lbUnsub=S.db.collection('users').orderBy('xp','desc').limit(25).onSnapshot(function(snap){
+  S.lbUnsub=S.db.collection('users').where('type','eq',S.userType).orderBy('xp','desc').limit(25).onSnapshot(function(snap){
     S.leaderboard=snap.docs.map(function(d,i){return Object.assign({rank:i+1},d.data());});
     const me=S.leaderboard.find(u=>u.username===S.username);
     S.rank=me?me.rank:null;
@@ -558,6 +560,7 @@ function startLb(){
     const rEl=$('rank-pos');if(rEl)rEl.textContent=rankLabel(S.rank);
     const pEl=$('hdr-xp');if(pEl)pEl.textContent=totalXP().toLocaleString();
     const tEl=$('total-xp');if(tEl)tEl.textContent=totalXP().toLocaleString();
+    const tEl2=$('lb-title-text');if(tEl2)tEl2.textContent=S.userType==='agent'?'Ranking Agentes 🏆':'Ranking Novatos 🏆';
   },function(e){console.error('lb',e);});
 }
 
@@ -702,7 +705,7 @@ function renderDashboard(){
       <div style="display:flex;flex-direction:column;gap:14px">${dayGroupsHtml}</div>
     </main>
     <aside class="lb-sidebar">
-      <div class="lb-title">Clasificación 🏆</div>
+      <div class="lb-title" id="lb-title-text">Clasificación 🏆</div>
       <div class="lb-list" id="lb-list"><div class="lb-empty">Cargando...</div></div>
     </aside>
   </div>`;
