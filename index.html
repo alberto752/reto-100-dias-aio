@@ -657,9 +657,10 @@ function renderDashboard(){
         statusHtml=`<div class="r-status">${r.dayLabel}</div>`;
         actionHtml=`<span class="lock-ico">🔒</span>`;
       }
+      const profileTag=r.profile==='agent'?'<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-left:6px;opacity:0.7">· Agente</span>':'<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-left:6px;opacity:0.7">· Novato</span>';
       return `<div class="reto-card ${st}" ${st==='available'?`data-rid="${r.id}"`:''}>
         <span class="r-icon">${r.emoji}</span>
-        <div class="r-info"><div class="r-title">${r.title}</div>${statusHtml}</div>
+        <div class="r-info"><div class="r-title">${r.title}${profileTag}</div>${statusHtml}</div>
         ${actionHtml}
       </div>`;
     }).join('');
