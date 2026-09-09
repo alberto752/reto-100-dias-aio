@@ -400,7 +400,7 @@ const RETOS = [
   revealTeaser:'Este agente existe. El 23 de septiembre verás por qué el currículum no es suficiente sin el sistema correcto.',
 },
 {
-  id:'r3', profile:'novice', date:'2026-09-19', dayLabel:'Sábado 19 sep',
+  id:'r3', profile:'novice', date:'2026-09-09', dayLabel:'Sábado 19 sep',
   title:'Los 1.000€', emoji:'💰', type:'budget',
   xpBase:50, xpBonus:50,
   intro:'Acabas de empezar como agente. Tienes 1.000€ para conseguir tu primera oportunidad. Repártelos como quieras entre estas 5 opciones.',
@@ -422,7 +422,7 @@ const RETOS = [
   revealTeaser:'La lógica detrás de esta distribución la explica Javi el 23 de septiembre con datos reales de su operativa.',
 },
 {
-  id:'r4', profile:'agent', date:'2026-09-19', dayLabel:'Sábado 19 sep',
+  id:'r4', profile:'agent', date:'2026-09-09', dayLabel:'Sábado 19 sep',
   title:'El embudo roto', emoji:'🔍', type:'funnel',
   xpBase:50, xpBonus:50,
   intro:'Este es el embudo de un agente inmobiliario online. Algo está fallando. Investiga y encuentra dónde está la fuga.',
@@ -509,6 +509,13 @@ const S = {
 
 const app = document.getElementById('app');
 const $ = id => document.getElementById(id);
+
+function saveLocal(){
+  try{
+    localStorage.setItem('aio_u', S.username);
+    localStorage.setItem('aio_data', JSON.stringify(S.userData));
+  }catch(e){}
+}
 
 function logoHtml(size){
   size=size||'lg';
@@ -621,7 +628,7 @@ function renderProfile(){
     if(!sel)return;btn.disabled=true;btn.textContent='Creando perfil...';
     const u={username:S.username,type:sel,xp:0,activeSeconds:0,completedRetos:{}};
     try{await S.db.doc('users/'+S.username).set(u);}catch(e){console.warn('DB no disponible, modo local:',e);}
-    S.userType=sel;S.userData=u;localStorage.setItem('aio_u',S.username);
+    S.userType=sel;S.userData=u;saveLocal();
     try{startLb();}catch(e){console.warn('Leaderboard no disponible',e);}
     renderDashboard();
   });
@@ -752,6 +759,7 @@ async function completeReto(r,xpEarned,bonusEarned,gotBonus){
   const completedRetos=Object.assign({},(S.userData.completedRetos||{}));
   completedRetos[r.id]={xp:xpEarned,bonus:bonusEarned,gotBonus,completedAt:new Date().toISOString()};
   S.userData=Object.assign({},S.userData,{xp:newXP,activeSeconds:newSecs,completedRetos});
+  saveLocal();
   try{await S.db.doc('users/'+S.username).set(S.userData);}catch(e){console.warn('DB sync fallida, progreso en local',e);}
   renderRetoComplete(r,xpEarned,bonusEarned,gotBonus);
 }
@@ -1370,12 +1378,25 @@ async function init(){
     renderProfile();return;
   }
   const saved=localStorage.getItem('aio_u');
+  const savedData=(() => { try{ const r=localStorage.getItem('aio_data'); return r?JSON.parse(r):null; }catch(e){return null;} })();
   if(saved){
     try{
       const snap=await S.db.doc('users/'+saved).get();
-      if(snap.exists){const d=snap.data();S.username=saved;S.userType=d.type;S.userData=Object.assign({xp:0,activeSeconds:0,completedRetos:{}},d);startLb();renderDashboard();return;}
-    }catch(e){console.error(e);}
-    localStorage.removeItem('aio_u');
+      if(snap.exists){
+        const d=snap.data();
+        S.username=saved;S.userType=d.type;
+        S.userData=Object.assign({xp:0,activeSeconds:0,completedRetos:{}},d);
+        saveLocal();try{startLb();}catch(e){}renderDashboard();return;
+      }
+    }catch(e){console.warn('DB no disponible, usando datos locales',e);}
+    // DB falla o usuario no existe en DB — usar caché local si existe
+    if(savedData&&savedData.username===saved&&savedData.type){
+      S.username=saved;S.userType=savedData.type;
+      S.userData=Object.assign({xp:0,activeSeconds:0,completedRetos:{}},savedData);
+      try{startLb();}catch(e){}renderDashboard();return;
+    }
+    // Si no hay caché local, volver al registro (pero mantener el username)
+    S.username=saved;renderProfile();return;
   }
   renderWelcome();
 }
