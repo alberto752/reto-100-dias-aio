@@ -126,9 +126,10 @@ h1{font-weight:800;}h2{font-weight:700;}h3{font-weight:600;}
 .agents-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .agent-card{background:var(--surface-2);border:2px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:border-color 0.15s,background 0.15s;text-align:left;font-family:inherit;}
 .agent-card:hover{border-color:var(--silver-3);background:var(--surface-3);}
-.agent-card.selected{border-color:var(--silver);background:var(--silver-dim);}
-.agent-card.correct{border-color:var(--success);background:var(--success-dim);}
-.agent-card.wrong{border-color:var(--error);background:var(--error-dim);}
+.agent-card.selected{border-color:var(--silver-2);background:rgba(196,205,216,0.2);box-shadow:0 0 0 1px var(--silver-2),inset 0 0 0 1px var(--silver-2);}
+.agent-card.selected .agent-name::after{content:' ✓';color:var(--silver-2);}
+.agent-card.correct{border-color:var(--success);background:var(--success-dim);box-shadow:0 0 0 1px var(--success);}
+.agent-card.wrong{border-color:var(--error);background:var(--error-dim);box-shadow:0 0 0 1px var(--error);}
 .agent-card.eliminated{opacity:0.3;pointer-events:none;}
 .agent-emoji{font-size:32px;display:block;margin-bottom:10px;}
 .agent-name{font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:3px;}
@@ -808,7 +809,7 @@ function playAgentPick(r){
         <div class="agent-handle">${a.handle}</div>
         <div class="agent-bio">${a.bio}</div>
       </button>`).join('');
-    const actionHtml=phase==='pick'?`<button class="btn btn-primary" id="confirm-btn" disabled>Confirmar elección →</button>`:'';
+    const actionHtml=phase==='pick'?`<button class="btn btn-primary" id="confirm-btn" disabled style="opacity:0.35;transition:opacity 0.2s">Confirmar elección →</button>`:'';
     app.innerHTML=retoShellHtml(r,`
       <div class="card"><div class="card-eye">Reto · Día 1</div><div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
         <div class="agents-grid">${cardsHtml}</div>
@@ -821,7 +822,7 @@ function playAgentPick(r){
           selected=btn.dataset.aid;
           document.querySelectorAll('.agent-card').forEach(b=>b.classList.remove('selected'));
           btn.classList.add('selected');
-          $('confirm-btn').disabled=false;
+          const cb=$('confirm-btn');if(cb){cb.disabled=false;cb.style.opacity='1';}
         });
       });
       $('confirm-btn')?.addEventListener('click',async()=>{
@@ -923,7 +924,12 @@ function playAgentClues(r){
     });
     if(phase==='pick'){
       document.querySelectorAll('.agent-card:not([disabled])').forEach(btn=>{
-        btn.addEventListener('click',()=>{chosen=btn.dataset.aid;render();});
+        btn.addEventListener('click',()=>{
+          chosen=btn.dataset.aid;
+          document.querySelectorAll('.agent-card').forEach(b=>b.classList.remove('selected'));
+          btn.classList.add('selected');
+          const cb=$('confirm-pick-btn');if(cb)cb.disabled=false;
+        });
       });
       $('confirm-pick-btn')?.addEventListener('click',showClueReveal);
     }
