@@ -1093,14 +1093,7 @@ function playFunnel(r){
   let chosen=null,phase='investigate';
 
   function buildCascadeHtml(){
-    return r.stages.map((s,i)=>[
-      `<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm)">
-        <span style="font-size:16px">${s.icon}</span>
-        <span style="flex:1;font-size:12px;color:var(--text-2)">${s.label}</span>
-        <span style="font-family:var(--font-d);font-size:14px;font-weight:800;color:var(--silver-1)">${s.value}</span>
-      </div>`,
-      i<r.stages.length-1?`<div style="text-align:center;font-size:12px;color:var(--text-3);padding:1px 0">↓</div>`:''
-    ].join('')).join('');
+    return `<div style="display:flex;flex-wrap:wrap;gap:6px">${r.stages.map(s=>`<div style="display:flex;align-items:center;gap:5px;padding:4px 8px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);flex:1;min-width:130px"><span style="font-size:14px">${s.icon}</span><span style="font-size:11px;color:var(--text-2);flex:1">${s.label}</span><span style="font-family:var(--font-d);font-size:13px;font-weight:800;color:var(--silver-1)">${s.value}</span></div>`).join('')}</div>`;
   }
 
   function buildSuspectsHtml(){
