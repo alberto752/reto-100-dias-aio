@@ -445,7 +445,7 @@ const RETOS = [
   revealTeaser:'Hay un cuello de botella claro aquí. El 23 de septiembre verás el caso completo y la solución que usaron para triplicar el resultado.',
 },
 {
-  id:'r5', profile:'novice', date:'2026-09-21', dayLabel:'Lunes 21 sep',
+  id:'r5', profile:'novice', date:'2026-09-22', dayLabel:'Martes 22 sep',
   title:'La operación imposible', emoji:'🗺️', type:'graph',
   xpBase:50, xpBonus:50,
   intro:'Tienes una propiedad de 300.000€ en Madrid. El propietario quiere vender. Tú acabas de empezar.',
@@ -466,7 +466,7 @@ const RETOS = [
   revealTeaser:'¿Por qué un agente podría necesitar menos contactos de los que imagina para acceder a una operación? La respuesta, el 23.',
 },
 {
-  id:'r6', profile:'agent', date:'2026-09-21', dayLabel:'Lunes 21 sep',
+  id:'r6', profile:'agent', date:'2026-09-22', dayLabel:'Martes 22 sep',
   title:'El farol', emoji:'🃏', type:'bluff',
   xpBase:50, xpBonus:50,
   intro:'Tienes una exclusiva de 400.000€. Otro agente te dice que tiene al comprador.',
@@ -852,33 +852,30 @@ function playAgentPick(r){
     const total=Object.values(votes).reduce((a,b)=>a+b,0)||1;
     const cardsHtml=r.agents.map(a=>{
       const pct=Math.round(((votes[a.id]||0)/total)*100);
-      const isCorrect=a.id===r.correctAgent;
       const isSelected=a.id===selected;
-      return `<div class="agent-card ${isCorrect?'correct':isSelected&&!isCorrect?'wrong':''}">
+      return `<div class="agent-card ${isSelected?'selected':''}">
         <span class="agent-emoji">${a.emoji}</span>
-        <div class="agent-name">${a.name} ${isCorrect?'✓':''}</div>
+        <div class="agent-name">${a.name}${isSelected?' (tu voto)':''}</div>
         <div class="agent-handle">${a.handle}</div>
         <div class="agent-bio">${a.bio}</div>
-        <div class="vote-bar"><div class="vote-bar-fill" style="width:${pct}%;background:${isCorrect?'var(--success)':'var(--silver)'}"></div></div>
+        <div class="vote-bar"><div class="vote-bar-fill" style="width:${pct}%"></div></div>
         <div class="vote-pct">${pct}% lo eligió</div>
       </div>`;
     }).join('');
-    const gotBonus=selected===r.correctAgent;
-    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
-    const correct=r.agents.find(a=>a.id===r.correctAgent);
+    const xp=r.xpBase;
     app.innerHTML=retoShellHtml(r,`
       <div class="card">
         <div style="text-align:center;padding:20px 0 24px;border-bottom:1px solid var(--border-2);margin-bottom:20px">
-          <div style="font-size:48px;margin-bottom:10px">${gotBonus?'✅':'❌'}</div>
-          <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px">${gotBonus?'¡Correcto!':'Incorrecto'}</div>
-          <div style="font-size:15px;color:var(--text-2)">La respuesta era <strong style="color:var(--white)">${correct?correct.emoji+' '+correct.name:''}</strong></div>
+          <div style="font-size:48px;margin-bottom:10px">🗳️</div>
+          <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px">¡Voto registrado!</div>
+          <div style="font-size:14px;color:var(--text-2)">El 23 de septiembre descubrirás si acertaste</div>
         </div>
-        <div class="card-eye" style="margin-bottom:12px">Así votó el grupo</div>
+        <div class="card-eye" style="margin-bottom:12px">Así está votando el grupo</div>
         <div class="agents-grid">${cardsHtml}</div>
         <div style="margin-top:16px"><button class="btn btn-primary" id="finish-btn">Ver mis XP →</button></div>
       </div>`,xp);
     $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,0,false));
   }
   render();
 }
