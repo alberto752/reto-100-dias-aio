@@ -673,7 +673,7 @@ function renderDashboard(){
     <header class="dash-header">
       <div>${logoHtml('sm')}</div>
       <div class="header-right">
-        <button id="reset-btn" style="background:none;border:1px solid var(--border-2);border-radius:var(--r-sm);padding:6px 12px;font-size:12px;font-weight:600;color:var(--text-3);cursor:pointer;font-family:var(--font-b);transition:color 0.15s,border-color 0.15s" onmouseover="this.style.color='var(--error)';this.style.borderColor='var(--error)'" onmouseout="this.style.color='var(--text-3)';this.style.borderColor='var(--border-2)'">↺ Reset</button>
+
         <div class="pts-chip"><span class="pts-val" id="hdr-xp">${totalXP()}</span><span class="pts-lbl">XP</span></div>
         <div class="avatar" title="${S.username}">${initials(S.username)}</div>
       </div>
