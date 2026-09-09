@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reto 100 Días — AIO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#000;--surface:#0D0D0D;--surface-2:#141414;--surface-3:#1C1C1C;
+  --border:#1A1A1A;--border-2:#262626;
+  --silver:#C4CDD8;--silver-2:#E0E6EE;--silver-3:#A0AABB;
+  --silver-dim:rgba(196,205,216,0.12);--silver-glow:rgba(196,205,216,0.22);
+  --white:#FFFFFF;--white-dim:rgba(255,255,255,0.08);
+  --success:#3DBA7E;--success-dim:rgba(61,186,126,0.15);
+  --error:#E05555;--error-dim:rgba(224,85,85,0.15);
+  --gold:#F4C430;--gold-dim:rgba(244,196,48,0.14);
+  --text:#FFFFFF;--text-2:#B0BCCB;--text-3:#6A7585;
+  --font-d:'Syne',system-ui,sans-serif;--font-b:'DM Sans',system-ui,sans-serif;
+  --r:10px;--r-sm:7px;--r-lg:16px;--shadow:0 8px 40px rgba(0,0,0,0.85);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;font-size:15px;}
+#app{min-height:100vh;}
+.loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.spinner{width:30px;height:30px;border:2.5px solid var(--surface-3);border-top-color:var(--silver);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+h1,h2,h3{font-family:var(--font-d);line-height:1.1;}
+h1{font-weight:800;}h2{font-weight:700;}h3{font-weight:600;}
+.logo-row{display:flex;align-items:center;gap:14px;}
+.logo-100{font-family:var(--font-d);font-size:28px;font-weight:800;line-height:1;background:linear-gradient(175deg,#E8EDF4 0%,#C4CDD8 40%,#8A949F 70%,#D4DCE8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;}
+.logo-100.sm{font-size:20px;}
+.logo-label{font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-2);display:block;line-height:1;margin-top:2px;}
+.logo-reto{font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--text-2);letter-spacing:0.05em;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--r-sm);font-size:15px;font-weight:600;font-family:var(--font-b);cursor:pointer;border:none;transition:opacity 0.15s,transform 0.1s;}
+.btn:active{transform:scale(0.98);}
+.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
+.btn-primary{background:var(--white);color:#090909;width:100%;padding:14px;font-size:16px;font-weight:700;}
+.btn-primary:hover:not(:disabled){opacity:0.92;}
+.btn-outline{background:transparent;border:1.5px solid var(--border-2);color:var(--text-2);padding:10px 20px;font-size:14px;}
+.btn-outline:hover:not(:disabled){border-color:var(--silver-3);color:var(--text);}
+.welcome-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.welcome-card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:48px 40px;width:100%;max-width:460px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.welcome-card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:1px;background:linear-gradient(90deg,transparent,var(--silver),transparent);}
+.field-group{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.field-label{font-size:12px;font-weight:600;color:var(--text-2);letter-spacing:0.04em;text-transform:uppercase;}
+.field-input{background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:var(--r-sm);padding:12px 16px;font-size:15px;color:var(--text);font-family:var(--font-b);width:100%;outline:none;transition:border-color 0.15s;}
+.field-input:focus{border-color:var(--silver-3);}
+.field-input::placeholder{color:var(--text-3);}
+.err-msg{color:var(--error);font-size:12px;display:none;}
+.err-msg.show{display:block;}
+.profile-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.profile-opt{background:var(--surface-2);border:1.5px solid var(--border-2);border-radius:var(--r);padding:18px 20px;cursor:pointer;transition:border-color 0.15s,background 0.15s;display:flex;gap:16px;align-items:flex-start;text-align:left;font-family:inherit;}
+.profile-opt:hover{border-color:var(--silver-3);background:var(--surface-3);}
+.profile-opt.selected{border-color:var(--silver);background:var(--silver-dim);}
+.profile-opt-icon{font-size:26px;line-height:1;flex-shrink:0;}
+.profile-opt-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.profile-opt-desc{font-size:13px;color:var(--text-2);line-height:1.4;}
+.dashboard{display:grid;grid-template-columns:1fr 280px;grid-template-rows:auto 1fr;max-width:1060px;margin:0 auto;padding:24px;gap:20px;min-height:100vh;}
+.dash-header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.header-right{display:flex;align-items:center;gap:12px;}
+.pts-chip{display:flex;align-items:center;gap:6px;background:var(--silver-dim);border:1px solid var(--silver-glow);padding:7px 14px;border-radius:100px;}
+.pts-val{font-family:var(--font-d);font-size:17px;font-weight:800;color:var(--silver-2);font-variant-numeric:tabular-nums;}
+.pts-lbl{font-size:11px;font-weight:600;color:var(--silver-3);}
+.avatar{width:34px;height:34px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:12px;color:var(--text-2);}
+.dash-main{display:flex;flex-direction:column;gap:16px;}
+.hero-banner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);padding:22px 28px;display:flex;align-items:center;gap:20px;position:relative;overflow:hidden;flex-wrap:wrap;}
+.hero-banner::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--silver-3),transparent);}
+.hero-100{font-family:var(--font-d);font-size:64px;font-weight:800;line-height:1;letter-spacing:-0.04em;flex-shrink:0;background:linear-gradient(175deg,#E8EDF4 0%,#C4CDD8 35%,#8A949F 65%,#D4DCE8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-divider{width:1px;height:50px;background:var(--border-2);flex-shrink:0;}
+.hero-info{flex:1;min-width:0;}
+.hero-name{font-family:var(--font-d);font-size:17px;font-weight:700;}
+.hero-badge{display:inline-flex;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;background:var(--surface-3);color:var(--text-2);margin-top:4px;}
+.hero-rank{font-family:var(--font-d);font-size:12px;color:var(--text-2);margin-top:5px;}
+.hero-rank span{color:var(--silver-2);font-weight:700;}
+.hero-pts{margin-left:auto;text-align:right;flex-shrink:0;}
+.hero-pts-num{font-family:var(--font-d);font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);display:block;}
+.hero-pts-lbl{font-size:12px;color:var(--text-2);}
+.day-group{display:flex;flex-direction:column;gap:8px;}
+.day-label{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;}
+.reto-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:16px;}
+.reto-card.available{border-color:transparent;position:relative;cursor:pointer;}
+.reto-card.available::before{content:'';position:absolute;inset:-1px;border-radius:calc(var(--r)+1px);background:linear-gradient(90deg,#555,#C4CDD8,#8A949F,#E0E6EE,#555);background-size:300% 100%;animation:sheen 3s linear infinite;z-index:-1;}
+@keyframes sheen{to{background-position:-300% 0;}}
+@media(prefers-reduced-motion:reduce){.reto-card.available::before{animation:none;}}
+.reto-card.available:hover{background:var(--surface-2);}
+.reto-card.done{opacity:0.55;}
+.reto-card.locked{opacity:0.4;}
+.r-icon{font-size:24px;line-height:1;flex-shrink:0;}
+.r-info{flex:1;min-width:0;}
+.r-title{font-family:var(--font-d);font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.r-status{font-size:12px;color:var(--text-2);margin-top:2px;}
+.r-status.ok{color:var(--silver-2);font-weight:600;}
+.r-status.done{color:var(--success);font-weight:600;}
+.play-btn{background:var(--white);color:#090909;border:none;border-radius:var(--r-sm);padding:8px 16px;font-weight:700;font-family:var(--font-b);font-size:13px;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:opacity 0.15s,transform 0.1s;}
+.play-btn:hover{opacity:0.88;}
+.play-btn:active{transform:scale(0.97);}
+.xp-badge{text-align:right;flex-shrink:0;}
+.xp-num{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;display:block;}
+.xp-lbl{font-size:10px;color:var(--text-3);}
+.lock-ico{color:var(--text-3);font-size:16px;flex-shrink:0;}
+.lb-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;height:fit-content;position:sticky;top:24px;}
+.lb-title{font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);}
+.lb-list{display:flex;flex-direction:column;gap:3px;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);}
+.lb-row.me{background:var(--silver-dim);border:1px solid var(--silver-glow);}
+.lb-pos{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--text-3);width:22px;text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.lb-name{flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-name.me-n{color:var(--silver-2);font-weight:700;}
+.lb-xp{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--text-3);flex-shrink:0;font-variant-numeric:tabular-nums;}
+.lb-xp.me-p{color:var(--gold);}
+.lb-empty{text-align:center;padding:20px 0;color:var(--text-3);font-size:13px;}
+.reto-screen{height:100vh;overflow-y:auto;display:flex;flex-direction:column;max-width:680px;margin:0 auto;padding:24px;gap:18px;}
+.reto-hdr{display:flex;align-items:center;gap:14px;}
+.reto-close{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;padding:4px;line-height:1;flex-shrink:0;transition:color 0.15s;}
+.reto-close:hover{color:var(--text);}
+.reto-hdr-title{font-family:var(--font-d);font-size:14px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.xp-chip{display:flex;align-items:center;gap:5px;background:var(--gold-dim);border:1px solid rgba(244,196,48,0.2);padding:5px 12px;border-radius:100px;font-family:var(--font-d);font-size:13px;font-weight:800;color:var(--gold);flex-shrink:0;}
+.card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:28px 26px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border-2),transparent);}
+.card-eye{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px;}
+.card-title{font-family:var(--font-d);font-size:20px;font-weight:700;line-height:1.3;margin-bottom:8px;}
+.card-desc{font-size:14px;color:var(--text-2);line-height:1.5;margin-bottom:20px;}
+.agents-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.agent-card{background:var(--surface-2);border:2px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:border-color 0.15s,background 0.15s;text-align:left;font-family:inherit;}
+.agent-card:hover{border-color:var(--silver-3);background:var(--surface-3);}
+.agent-card.selected{border-color:var(--silver);background:var(--silver-dim);}
+.agent-card.correct{border-color:var(--success);background:var(--success-dim);}
+.agent-card.wrong{border-color:var(--error);background:var(--error-dim);}
+.agent-card.eliminated{opacity:0.3;pointer-events:none;}
+.agent-emoji{font-size:32px;display:block;margin-bottom:10px;}
+.agent-name{font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:3px;}
+.agent-handle{font-size:12px;color:var(--text-3);margin-bottom:8px;}
+.agent-bio{font-size:12px;color:var(--text-2);line-height:1.4;}
+.vote-bar{height:6px;border-radius:100px;background:var(--surface-3);margin-top:10px;overflow:hidden;}
+.vote-bar-fill{height:100%;background:var(--silver);border-radius:100px;transition:width 0.6s ease;}
+.vote-pct{font-size:11px;color:var(--text-2);margin-top:4px;font-variant-numeric:tabular-nums;}
+.clues-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.clue-item{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 16px;font-size:14px;color:var(--text-2);animation:fadein 0.3s ease;}
+.budget-channels{display:flex;flex-direction:column;gap:16px;margin-bottom:20px;}
+.budget-ch{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;}
+.budget-ch-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.budget-ch-name{font-family:var(--font-d);font-size:14px;font-weight:700;}
+.budget-ch-val{font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--gold);}
+.budget-slider{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--surface-3);border-radius:100px;outline:none;cursor:pointer;}
+.budget-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--silver-2);border-radius:50%;cursor:pointer;border:2px solid var(--bg);}
+.budget-remaining{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:16px;}
+.budget-rem-lbl{font-size:13px;color:var(--text-2);}
+.budget-rem-val{font-family:var(--font-d);font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;}
+.budget-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
+.budget-result-item{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;text-align:center;}
+.budget-result-num{font-family:var(--font-d);font-size:22px;font-weight:800;color:var(--success);display:block;}
+.budget-result-lbl{font-size:11px;color:var(--text-2);}
+.funnel-suspect{padding:12px 14px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:default;transition:border-color 0.12s,background 0.12s;}
+.funnel-suspect.selected{border-color:var(--silver);background:var(--silver-dim);}
+.btn-inv{font-family:var(--font-b);font-size:11px;font-weight:700;padding:5px 10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surface-3);color:var(--text-2);cursor:pointer;transition:background 0.12s,border-color 0.12s;white-space:nowrap;}
+.btn-inv:hover:not(.inv-done){border-color:var(--silver-3);background:var(--surface-2);}
+.btn-inv.inv-done{background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3);color:var(--success);cursor:default;}
+.path-opt[data-chosen]{border-color:var(--silver);background:var(--silver-dim);}
+.path-opt[data-chosen] .path-letter{background:var(--silver);color:#000;}
+.path-opts{display:flex;flex-direction:column;gap:8px;}
+.path-opt{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;text-align:left;font-family:var(--font-b);font-size:14px;color:var(--text);line-height:1.4;transition:border-color 0.12s,background 0.12s;}
+.path-opt:hover:not([data-locked]){border-color:var(--border-2);background:var(--surface-3);}
+.path-opt[data-correct]{border-color:var(--success);background:var(--success-dim);}
+.path-opt[data-wrong]{border-color:var(--error);background:var(--error-dim);}
+.path-letter{width:28px;height:28px;border-radius:6px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:11px;font-weight:800;color:var(--text-3);flex-shrink:0;}
+.path-opt[data-correct] .path-letter{background:var(--success);color:#fff;}
+.path-opt[data-wrong] .path-letter{background:var(--error);color:#fff;}
+.complete-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.complete-card{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-lg);padding:44px 38px;width:100%;max-width:460px;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.complete-card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:1px;background:linear-gradient(90deg,transparent,var(--silver),transparent);}
+.complete-emoji{font-size:56px;display:block;margin-bottom:16px;}
+.complete-title{font-size:22px;margin-bottom:6px;}
+.complete-sub{color:var(--text-2);margin-bottom:22px;font-size:14px;}
+.xp-box{background:var(--gold-dim);border:1px solid rgba(244,196,48,0.25);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.xp-big{font-family:var(--font-d);font-size:52px;font-weight:800;line-height:1;display:block;font-variant-numeric:tabular-nums;color:var(--gold);}
+.xp-box-lbl{font-size:13px;color:var(--text-2);margin-top:4px;}
+.xp-breakdown{display:flex;gap:8px;justify-content:center;margin-top:12px;}
+.xp-part{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 16px;flex:1;}
+.xp-part-num{font-family:var(--font-d);font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;display:block;}
+.xp-part-lbl{font-size:11px;color:var(--text-2);}
+.open-loop{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;text-align:left;}
+.open-loop-eye{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver-3);margin-bottom:6px;}
+.open-loop-text{font-size:13px;color:var(--text-2);line-height:1.5;}
+.rank-change{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--text-2);margin-bottom:16px;}
+.rank-change strong{color:var(--silver-2);font-family:var(--font-d);}
+.fadein{animation:fadein 0.22s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+@media(prefers-reduced-motion:reduce){.fadein{animation:none;}}
+@media(max-width:740px){
+  .dashboard{grid-template-columns:1fr;padding:16px;gap:14px;}
+  .dash-header{grid-column:1;}
+  .lb-sidebar{position:static;}
+  .welcome-card{padding:32px 22px;}
+  .agents-grid{grid-template-columns:1fr 1fr;}
+  .complete-card{padding:32px 20px;}
+  .hero-100{font-size:48px;}
+  .hero-divider{height:40px;}
+}
+@media(max-width:480px){
+  .agents-grid{grid-template-columns:1fr;}
+  .budget-result-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="loading">
+    <div class="spinner"></div>
+    <p style="color:var(--text-2);font-size:13px;margin-top:4px">Cargando...</p>
+  </div>
+</div>
+<script>
+// ─── SUPABASE ADAPTER ──────────────────────────────────────────────
+function makeDb(SUPABASE_URL, SUPABASE_KEY) {
+  const BASE = SUPABASE_URL + '/rest/v1';
+  const hdrs = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json'
+  };
+
+  async function q(table, qp, opts) {
+    opts = opts || {};
+    const url = BASE + '/' + table + (qp ? '?' + qp : '');
+    const res = await fetch(url, {
+      method: opts.method || 'GET',
+      headers: Object.assign({}, hdrs, opts.extra || {}),
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined
+    });
+    if (!res.ok && res.status !== 204) {
+      const txt = await res.text();
+      throw new Error('Supabase ' + res.status + ': ' + txt);
+    }
+    if (res.status === 204 || opts.method === 'PATCH' || opts.method === 'DELETE') return null;
+    return res.json();
+  }
+
+  function rowToUser(row) {
+    return {
+      username: row.username,
+      type: row.type,
+      xp: row.xp || 0,
+      activeSeconds: row.active_seconds || 0,
+      completedRetos: row.completed_retos || {}
+    };
+  }
+
+  function userToRow(data) {
+    const row = {};
+    if (data.username !== undefined) row.username = data.username;
+    if (data.type !== undefined) row.type = data.type;
+    if (data.xp !== undefined) row.xp = data.xp;
+    if (data.activeSeconds !== undefined) row.active_seconds = data.activeSeconds;
+    if (data.active_seconds !== undefined) row.active_seconds = data.active_seconds;
+    if (data.completedRetos !== undefined) row.completed_retos = data.completedRetos;
+    if (data.completed_retos !== undefined) row.completed_retos = data.completed_retos;
+    return row;
+  }
+
+  return {
+    doc: function(path) {
+      const parts = path.split('/');
+      const col = parts[0], id = parts[1];
+      return {
+        get: async function() {
+          if (col === 'users') {
+            const rows = await q('arena_users', 'username=eq.' + encodeURIComponent(id) + '&limit=1');
+            if (!rows || !rows.length) return { exists: false, data: function(){ return null; } };
+            const u = rowToUser(rows[0]);
+            return { exists: true, data: function(){ return u; } };
+          }
+          if (col === 'votes') {
+            const rows = await q('arena_votes', 'reto_id=eq.' + encodeURIComponent(id));
+            if (!rows || !rows.length) return { exists: false, data: function(){ return {}; } };
+            const votes = {};
+            rows.forEach(function(r){ votes[r.agent_id] = r.count; });
+            return { exists: true, data: function(){ return votes; } };
+          }
+          throw new Error('Unknown collection: ' + col);
+        },
+        set: async function(data) {
+          if (col === 'users') {
+            const row = userToRow(data);
+            row.username = id;
+            await q('arena_users', '', {
+              method: 'POST',
+              extra: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+              body: row
+            });
+          }
+          if (col === 'votes') {
+            const rows = Object.keys(data).map(function(agentId){
+              return { reto_id: id, agent_id: agentId, count: data[agentId] };
+            });
+            if (!rows.length) return;
+            await q('arena_votes', '', {
+              method: 'POST',
+              extra: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+              body: rows
+            });
+          }
+        },
+        update: async function(partial) {
+          if (col === 'users') {
+            const row = userToRow(partial);
+            delete row.username;
+            await q('arena_users', 'username=eq.' + encodeURIComponent(id), {
+              method: 'PATCH',
+              extra: { 'Prefer': 'return=minimal' },
+              body: row
+            });
+          }
+        }
+      };
+    },
+    collection: function(colName) {
+      let _ob = null, _dir = 'asc', _lim = null;
+      const self = {
+        orderBy: function(f, d) { _ob = f; _dir = d || 'asc'; return self; },
+        limit: function(n) { _lim = n; return self; },
+        _fetch: async function() {
+          if (colName === 'users') {
+            const parts = [];
+            if (_ob) parts.push('order=' + _ob + '.' + _dir + '.nullslast');
+            if (_lim) parts.push('limit=' + _lim);
+            const rows = await q('arena_users', parts.join('&'));
+            return (rows || []).map(function(row){
+              const u = rowToUser(row);
+              return { data: function(){ return u; } };
+            });
+          }
+          return [];
+        },
+        onSnapshot: function(cb, errCb) {
+          let active = true;
+          const run = async function() {
+            if (!active) return;
+            try {
+              const docs = await self._fetch();
+              cb({ docs: docs });
+            } catch(e) {
+              if (errCb) errCb(e);
+            }
+          };
+          run();
+          const iv = setInterval(run, 15000);
+          return function() { active = false; clearInterval(iv); };
+        }
+      };
+      return self;
+    }
+  };
+}
+
+// ─── CONTENIDO ─────────────────────────────────────────────────────
+const RETOS = [
+{
+  id:'r1', profile:'novice', date:'2026-09-09', dayLabel:'Miércoles 16 sep',
+  title:'¿A quién le darías tu casa?', emoji:'🏠', type:'agent-pick',
+  xpBase:50, xpBonus:50,
+  intro:'Cuatro agentes quieren gestionar tu venta. Solo uno trabaja con el sistema que realmente funciona hoy. ¿Sabrás cuál es?',
+  agents:[
+    {id:'a', emoji:'👩‍💼', name:'Laura Sánchez',  handle:'@laurasanchez.realtor',
+     bio:'8 años en el sector. Especialista en pisos de lujo. Cierra el 90% de sus mandatos.', seguidores:'2.847'},
+    {id:'b', emoji:'👨‍💼', name:'Marcos Ruiz',    handle:'@marcosruiz.inmobiliario',
+     bio:'Ex-bancario. Fuerte en financiación y negociación. Trabaja con 3 agencias.', seguidores:'438'},
+    {id:'c', emoji:'👩‍💻', name:'Ana Torres',     handle:'@anatorres.proptech',
+     bio:'Lifestyle inmobiliario premium. Eventos exclusivos, Lamborghinis, propiedades de lujo.', seguidores:'12.400'},
+    {id:'d', emoji:'👨‍🏫', name:'Roberto Silva',  handle:'@robertosilva.realty',
+     bio:'"6 meses publicada y nadie pregunta — así lo arreglé." Resuelve problemas concretos.', seguidores:'913'},
+  ],
+  correctAgent:'d',
+  revealTeaser:'Un agente real digitalizó su operativa y cambió todo. El 23 de septiembre te contamos exactamente cómo y qué resultados obtuvo.',
+},
+{
+  id:'r2', profile:'agent', date:'2026-09-09', dayLabel:'Miércoles 16 sep',
+  title:'El agente invisible', emoji:'🕵️', type:'agent-clues',
+  xpBase:50, xpBonus:50,
+  intro:'Uno de estos 6 agentes tiene los mejores números del grupo. Pero hay uno que, por mucho currículum que tenga, un propietario nunca lo encontraría online. Encuéntralo.',
+  agents:[
+    {id:'1', emoji:'🧔',    name:'Diego Morales',  handle:'@diegomorales'},
+    {id:'2', emoji:'👩‍🦱',   name:'Sofía Ramos',    handle:'@sofiaramos.homes'},
+    {id:'3', emoji:'👱‍♂️',   name:'Andrés Vega',    handle:'@andresvega.re'},
+    {id:'4', emoji:'👩‍🦰',   name:'Natalia Cruz',   handle:'@nataliacruz.propiedades'},
+    {id:'5', emoji:'👨‍🦳',   name:'Miguel Ibáñez',  handle:'@miguelibañez.agente'},
+    {id:'6', emoji:'👩‍🦳',   name:'Carmen López',   handle:'@carmenlopez.inmobiliaria'},
+  ],
+  clues:[
+    {label:'Años de experiencia',                       values:{'1':'12 años','2':'4 años','3':'18 años','4':'7 años','5':'22 años','6':'9 años'}},
+    {label:'Seguidores en redes',                       values:{'1':'4.200','2':'890','3':'11.500','4':'2.100','5':'680','6':'3.400'}},
+    {label:'Propiedades publicadas activas',             values:{'1':'34','2':'12','3':'67','4':'28','5':'41','6':'19'}},
+    {label:'Reseñas Google',                            values:{'1':'4,6★ (23)','2':'4,9★ (8)','3':'4,7★ (51)','4':'4,8★ (17)','5':'4,5★ (38)','6':'5,0★ (12)'}},
+    {label:'Aparece al buscar "vender casa" en Google', values:{'1':'✅ Sí','2':'✅ Sí','3':'❌ No','4':'✅ Sí','5':'✅ Sí','6':'✅ Sí'}},
+  ],
+  correctAgent:'3',
+  revealTeaser:'Este agente existe. El 23 de septiembre verás por qué el currículum no es suficiente sin el sistema correcto.',
+},
+{
+  id:'r3', profile:'novice', date:'2026-09-19', dayLabel:'Sábado 19 sep',
+  title:'Los 1.000€', emoji:'💰', type:'budget',
+  xpBase:50, xpBonus:50,
+  intro:'Acabas de empezar como agente. Tienes 1.000€ para conseguir tu primera oportunidad. Repártelos como quieras entre estas 5 opciones.',
+  totalBudget:1000,
+  channels:[
+    {id:'fotos',     label:'Fotos profesionales', icon:'📸', desc:'Aumenta la confianza del lead real'},
+    {id:'anuncios',  label:'Anuncios',             icon:'📢', desc:'Determina cuánta gente ve tu propuesta'},
+    {id:'videos',    label:'Vídeos',               icon:'🎥', desc:'+2% CTR si inviertes ≥150€'},
+    {id:'landing',   label:'Landing page',         icon:'🌐', desc:'+15% conversión si inviertes ≥150€'},
+    {id:'contactos', label:'Activar contactos',    icon:'🤝', desc:'Leads fríos de tu red personal'},
+  ],
+  leadOptions:[
+    {id:'A', label:'Llamarlo inmediatamente.'},
+    {id:'B', label:'Mandarle información sobre la propiedad.'},
+    {id:'C', label:'Hacerle una pregunta antes de venderle nada.'},
+    {id:'D', label:'Esperar a que él vuelva a escribir.'},
+  ],
+  correctLead:'C',
+  revealTeaser:'La lógica detrás de esta distribución la explica Javi el 23 de septiembre con datos reales de su operativa.',
+},
+{
+  id:'r4', profile:'agent', date:'2026-09-19', dayLabel:'Sábado 19 sep',
+  title:'El embudo roto', emoji:'🔍', type:'funnel',
+  xpBase:50, xpBonus:50,
+  intro:'Este es el embudo de un agente inmobiliario online. Algo está fallando. Investiga y encuentra dónde está la fuga.',
+  stages:[
+    {label:'Visualizaciones',    value:'10.000', icon:'👁️'},
+    {label:'Clics',              value:'840',    icon:'👆'},
+    {label:'Llegan a la landing',value:'210',   icon:'🌐'},
+    {label:'Dejan sus datos',    value:'64',    icon:'📋'},
+    {label:'Responden',          value:'11',    icon:'💬'},
+    {label:'Llamadas realizadas',value:'0',     icon:'📞'},
+  ],
+  suspects:[
+    {id:'anuncio',    label:'Anuncio',         icon:'📢', clue:'CTR del anuncio: 8,4% — por encima de la media del sector.'},
+    {id:'landing',    label:'Landing',          icon:'🌐', clue:'Conversión landing: 30,4% — por encima de la media del sector.'},
+    {id:'formulario', label:'Formulario',       icon:'📋', clue:'64 formularios completados de 210 visitas. Tasa normal para el sector.'},
+    {id:'seguimiento',label:'Seguimiento',      icon:'📞', clue:'11 personas respondieron al formulario. El setter tardó una media de 6 días en llamar. Resultado: 0 llamadas completadas.'},
+    {id:'mensaje',    label:'Oferta / Mensaje', icon:'💬', clue:'Los mensajes de seguimiento nunca llegaron a enviarse.'},
+  ],
+  brokenStage:'seguimiento',
+  revealTeaser:'Hay un cuello de botella claro aquí. El 23 de septiembre verás el caso completo y la solución que usaron para triplicar el resultado.',
+},
+{
+  id:'r5', profile:'novice', date:'2026-09-21', dayLabel:'Lunes 21 sep',
+  title:'La operación imposible', emoji:'🗺️', type:'graph',
+  xpBase:50, xpBonus:50,
+  intro:'Tienes una propiedad de 300.000€ en Madrid. El propietario quiere vender. Tú acabas de empezar.',
+  nodes:[
+    {id:'portal',    label:'Portal inmobiliario', icon:'🏘️', connects:{madrid:'slow',tenerife:'slow'}},
+    {id:'contacto',  label:'Contacto personal',   icon:'👤', connects:{}},
+    {id:'inversor',  label:'Inversor',             icon:'💼', connects:{tenerife:'partial'}},
+    {id:'agente_gc', label:'Agente Gran Canaria',  icon:'🏝️', connects:{}},
+    {id:'agente_mad',label:'Agente Madrid',        icon:'🤝', connects:{madrid:'fast'}},
+    {id:'agencia',   label:'Agencia tradicional',  icon:'🏢', connects:{}},
+  ],
+  destinations:[
+    {id:'madrid',  label:'Comprador Madrid',   icon:'🏠'},
+    {id:'tenerife',label:'Comprador Tenerife', icon:'🌊'},
+  ],
+  correctNode:'agente_mad',
+  correctDest:'madrid',
+  revealTeaser:'¿Por qué un agente podría necesitar menos contactos de los que imagina para acceder a una operación? La respuesta, el 23.',
+},
+{
+  id:'r6', profile:'agent', date:'2026-09-21', dayLabel:'Lunes 21 sep',
+  title:'El farol', emoji:'🃏', type:'bluff',
+  xpBase:50, xpBonus:50,
+  intro:'Tienes una exclusiva de 400.000€. Otro agente te dice que tiene al comprador.',
+  options:[
+    {id:'A', label:'No colaboro. El comprador es mío.'},
+    {id:'B', label:'Dividimos la operación.'},
+    {id:'C', label:'Le paso la propiedad entera.'},
+    {id:'D', label:'Investigo primero qué tiene el otro agente.'},
+  ],
+  round1:{
+    scenario:'Tienes una exclusiva de 400.000€. Otro agente te dice que tiene al comprador. ¿Qué haces?',
+    metrics:{
+      A:{tiempo:'Alto',  comision:'100%',     prob:'30%'},
+      B:{tiempo:'Medio', comision:'50%',      prob:'65%'},
+      C:{tiempo:'Bajo',  comision:'20%',      prob:'70%'},
+      D:{tiempo:'Medio', comision:'Variable', prob:'50%'},
+    },
+  },
+  round2:{
+    scenario:'El comprador está buscando exactamente esta vivienda.',
+    metrics:{
+      A:{tiempo:'Alto',  comision:'100%',     prob:'40%'},
+      B:{tiempo:'Bajo',  comision:'50%',      prob:'85%'},
+      C:{tiempo:'Bajo',  comision:'20%',      prob:'75%'},
+      D:{tiempo:'Medio', comision:'Variable', prob:'60%'},
+    },
+  },
+  correctOption:'B',
+  revealTeaser:'¿Por qué puede tener sentido ceder la mitad? El 23 de septiembre lo desmontamos con casos reales.',
+},
+];
+
+// ─── ESTADO GLOBAL ─────────────────────────────────────────────────
+const S = {
+  db:null, username:null, userType:null,
+  userData:{ xp:0, completedRetos:{}, activeSeconds:0 },
+  leaderboard:[], rank:null,
+  lbUnsub:null, cdTimer:null,
+};
+
+const app = document.getElementById('app');
+const $ = id => document.getElementById(id);
+
+function logoHtml(size){
+  size=size||'lg';
+  const big=size==='lg';
+  return '<div class="logo-row"><div><span class="' + (big?'logo-100':'logo-100 sm') + '">100</span><span class="logo-label">DÍAS</span></div><div><span class="logo-reto">Reto</span><div style="font-size:' + (big?'11':'10') + 'px;color:var(--text-3);letter-spacing:0.06em;font-weight:500;line-height:1.2">Tu primera operación online</div></div></div>';
+}
+
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function retoStatus(r){
+  if(S.userData&&S.userData.completedRetos&&S.userData.completedRetos[r.id]) return 'done';
+  if(todayStr()<r.date) return 'locked';
+  const my=myRetos();
+  const idx=my.indexOf(r);
+  if(idx>0&&my[idx-1].date===r.date&&!(S.userData&&S.userData.completedRetos&&S.userData.completedRetos[my[idx-1].id])) return 'locked';
+  return 'available';
+}
+
+function myRetos(){return RETOS.filter(r=>r.profile===S.userType);}
+function totalXP(){return (S.userData&&S.userData.xp)||0;}
+function msUntil(ds){return new Date(ds+'T09:00:00').getTime()-Date.now();}
+function formatMs(ms){if(ms<=0)return{d:0,h:0,m:0,s:0};const t=Math.floor(ms/1000);return{d:Math.floor(t/86400),h:Math.floor((t%86400)/3600),m:Math.floor((t%3600)/60),s:t%60};}
+function pad(n){return String(n).padStart(2,'0');}
+function fmtSecs(s){if(!s)return'--';return Math.floor(s/60)+'m '+pad(s%60)+'s';}
+function initials(s){return s.slice(0,2).toUpperCase();}
+function rankLabel(r){if(!r)return'--';if(r===1)return'🥇';if(r===2)return'🥈';if(r===3)return'🥉';return'#'+r;}
+
+// ─── Leaderboard ────────────────────────────────────────────────────
+function startLb(){
+  if(S.lbUnsub) S.lbUnsub();
+  S.lbUnsub=S.db.collection('users').orderBy('xp','desc').limit(25).onSnapshot(function(snap){
+    S.leaderboard=snap.docs.map(function(d,i){return Object.assign({rank:i+1},d.data());});
+    const me=S.leaderboard.find(u=>u.username===S.username);
+    S.rank=me?me.rank:null;
+    const lbEl=$('lb-list');if(lbEl)renderLb(lbEl);
+    const rEl=$('rank-pos');if(rEl)rEl.textContent=rankLabel(S.rank);
+    const pEl=$('hdr-xp');if(pEl)pEl.textContent=totalXP().toLocaleString();
+    const tEl=$('total-xp');if(tEl)tEl.textContent=totalXP().toLocaleString();
+  },function(e){console.error('lb',e);});
+}
+
+function renderLb(container){
+  if(!S.leaderboard.length){container.innerHTML='<div class="lb-empty">Sé el primero en jugar</div>';return;}
+  container.innerHTML=S.leaderboard.map(function(u){
+    const me=u.username===S.username;
+    const pos=u.rank<=3?['','🥇','🥈','🥉'][u.rank]:String(u.rank);
+    return '<div class="lb-row '+(me?'me':'')+'"><span class="lb-pos">'+pos+'</span><span class="lb-name '+(me?'me-n':'')+'">'+u.username+(me?' (tú)':'')+'</span><div style="text-align:right;flex-shrink:0"><div class="lb-xp '+(me?'me-p':'')+'">'+(u.xp||0)+' XP</div><div style="font-size:10px;color:var(--text-3);font-variant-numeric:tabular-nums">'+fmtSecs(u.activeSeconds||0)+'</div></div></div>';
+  }).join('');
+}
+
+// ─── WELCOME ───────────────────────────────────────────────────────
+function renderWelcome(){
+  app.innerHTML=`
+  <div class="welcome-screen fadein">
+    <div class="welcome-card">
+      <div style="margin-bottom:36px">${logoHtml()}</div>
+      <h1 style="font-size:26px;margin-bottom:8px">Únete al reto</h1>
+      <p style="color:var(--text-2);margin-bottom:28px;font-size:14px">Pon tu nombre de usuario. Si ya entraste antes, te recuperamos donde lo dejaste.</p>
+      <div class="field-group">
+        <label class="field-label" for="u-inp">Nombre de usuario</label>
+        <input class="field-input" id="u-inp" type="text" placeholder="Ej: carlos_agente" maxlength="30" autocomplete="off" spellcheck="false">
+        <span class="err-msg" id="u-err">Solo letras, números, guiones y guiones bajos (mín. 2 caracteres).</span>
+      </div>
+      <button class="btn btn-primary" id="u-btn">Continuar →</button>
+    </div>
+  </div>`;
+  const inp=$('u-inp'),btn=$('u-btn');
+  inp.focus();
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')btn.click();});
+  btn.addEventListener('click',async()=>{
+    const val=inp.value.trim().toLowerCase().replace(/\s+/g,'_');
+    if(!val||!/^[a-z0-9_\-]{2,30}$/.test(val)){$('u-err').classList.add('show');inp.focus();return;}
+    $('u-err').classList.remove('show');
+    btn.disabled=true;btn.textContent='Comprobando...';
+    try{
+      const snap=await S.db.doc('users/'+val).get();
+      if(snap.exists){const d=snap.data();S.username=val;S.userType=d.type;S.userData=d;localStorage.setItem('aio_u',val);startLb();renderDashboard();}
+      else{S.username=val;renderProfile();}
+    }catch(e){console.error('DB error:',e);S.username=val;renderProfile();}
+  });
+}
+
+// ─── PROFILE ───────────────────────────────────────────────────────
+function renderProfile(){
+  app.innerHTML=`
+  <div class="welcome-screen fadein">
+    <div class="welcome-card">
+      <div style="margin-bottom:28px">${logoHtml()}</div>
+      <h2 style="font-size:20px;margin-bottom:6px">Hola, <strong>${S.username}</strong></h2>
+      <p style="color:var(--text-2);margin-bottom:22px;font-size:14px">¿Cuál es tu punto de partida?</p>
+      <div class="profile-opts">
+        <button class="profile-opt" id="opt-agent"><span class="profile-opt-icon">🏡</span><div><div class="profile-opt-title">Soy agente inmobiliario</div><div class="profile-opt-desc">Ya trabajo en el sector y quiero digitalizar mi negocio</div></div></button>
+        <button class="profile-opt" id="opt-novice"><span class="profile-opt-icon">🌱</span><div><div class="profile-opt-title">No tengo experiencia</div><div class="profile-opt-desc">Quiero empezar desde cero en el inmobiliario online</div></div></button>
+      </div>
+      <button class="btn btn-primary" id="prof-btn" disabled>Empezar los 100 días →</button>
+    </div>
+  </div>`;
+  let sel=null;const btn=$('prof-btn');
+  ['agent','novice'].forEach(t=>{
+    $('opt-'+t).addEventListener('click',()=>{
+      document.querySelectorAll('.profile-opt').forEach(o=>o.classList.remove('selected'));
+      $('opt-'+t).classList.add('selected');sel=t;btn.disabled=false;
+    });
+  });
+  btn.addEventListener('click',async()=>{
+    if(!sel)return;btn.disabled=true;btn.textContent='Creando perfil...';
+    const u={username:S.username,type:sel,xp:0,activeSeconds:0,completedRetos:{}};
+    try{await S.db.doc('users/'+S.username).set(u);S.userType=sel;S.userData=u;localStorage.setItem('aio_u',S.username);startLb();renderDashboard();}
+    catch(e){console.error(e);btn.disabled=false;btn.textContent='Empezar los 100 días →';}
+  });
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────────────────
+function renderDashboard(){
+  if(S.cdTimer){clearInterval(S.cdTimer);S.cdTimer=null;}
+  const typeLbl=S.userType==='agent'?'Agente Inmobiliario':'Sin experiencia previa';
+  const retosToShow=myRetos();
+  const days=[...new Set(retosToShow.map(r=>r.date))].sort();
+  const dayGroupsHtml=days.map(date=>{
+    const dayRetos=retosToShow.filter(r=>r.date===date);
+    const dayLabel=dayRetos[0].dayLabel;
+    const retosHtml=dayRetos.map(r=>{
+      const st=retoStatus(r);
+      const done=S.userData.completedRetos&&S.userData.completedRetos[r.id];
+      let statusHtml='',actionHtml='';
+      if(st==='done'){
+        statusHtml=`<div class="r-status done">✓ Completado</div>`;
+        actionHtml=`<div class="xp-badge"><span class="xp-num">+${done.xp||0}</span><span class="xp-lbl">XP</span></div>`;
+      }else if(st==='available'){
+        statusHtml=`<div class="r-status ok">Disponible ahora</div>`;
+        actionHtml=`<button class="play-btn" data-rid="${r.id}">Jugar →</button>`;
+      }else{
+        statusHtml=`<div class="r-status">${r.dayLabel}</div>`;
+        actionHtml=`<span class="lock-ico">🔒</span>`;
+      }
+      return `<div class="reto-card ${st}" ${st==='available'?`data-rid="${r.id}"`:''}>
+        <span class="r-icon">${r.emoji}</span>
+        <div class="r-info"><div class="r-title">${r.title}</div>${statusHtml}</div>
+        ${actionHtml}
+      </div>`;
+    }).join('');
+    return `<div class="day-group"><div class="day-label">${dayLabel}</div>${retosHtml}</div>`;
+  }).join('');
+
+  const nextLocked=myRetos().find(r=>retoStatus(r)==='locked'&&todayStr()<r.date);
+
+  app.innerHTML=`
+  <div class="dashboard fadein">
+    <header class="dash-header">
+      <div>${logoHtml('sm')}</div>
+      <div class="header-right">
+        <button id="reset-btn" style="background:none;border:1px solid var(--border-2);border-radius:var(--r-sm);padding:6px 12px;font-size:12px;font-weight:600;color:var(--text-3);cursor:pointer;font-family:var(--font-b);transition:color 0.15s,border-color 0.15s" onmouseover="this.style.color='var(--error)';this.style.borderColor='var(--error)'" onmouseout="this.style.color='var(--text-3)';this.style.borderColor='var(--border-2)'">↺ Reset</button>
+        <div class="pts-chip"><span class="pts-val" id="hdr-xp">${totalXP()}</span><span class="pts-lbl">XP</span></div>
+        <div class="avatar" title="${S.username}">${initials(S.username)}</div>
+      </div>
+    </header>
+    <main class="dash-main">
+      <div class="hero-banner">
+        <div class="hero-100" id="rank-pos">${rankLabel(S.rank)}</div>
+        <div class="hero-divider"></div>
+        <div class="hero-info">
+          <div class="hero-name">${S.username}</div>
+          <div class="hero-badge">${typeLbl}</div>
+          <div class="hero-rank">Clasificación global <span>${S.rank?'#'+S.rank:'--'}</span></div>
+        </div>
+        <div class="hero-pts">
+          <span class="hero-pts-num" id="total-xp">${totalXP()}</span>
+          <div class="hero-pts-lbl">XP acumulados</div>
+        </div>
+      </div>
+      ${nextLocked?`<div class="card" style="padding:18px 24px">
+        <div class="card-eye">Próximo reto · ${nextLocked.dayLabel}</div>
+        <div style="font-family:var(--font-d);font-size:15px;font-weight:700;margin-bottom:14px">${nextLocked.title}</div>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          ${['d','h','m','s'].map((k,i)=>`${i>0?'<span style="font-family:var(--font-d);font-size:24px;font-weight:800;color:var(--surface-3);line-height:1;margin-bottom:10px">:</span>':''}<div style="text-align:center"><span style="font-family:var(--font-d);font-size:28px;font-weight:800;display:block;font-variant-numeric:tabular-nums;background:linear-gradient(175deg,#E0E6EE,#9098A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="cd-${k}">--</span><span style="font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;font-weight:600">${['días','horas','min','seg'][i]}</span></div>`).join('')}
+        </div>
+      </div>`:''}
+      <div style="display:flex;flex-direction:column;gap:14px">${dayGroupsHtml}</div>
+    </main>
+    <aside class="lb-sidebar">
+      <div class="lb-title">Clasificación 🏆</div>
+      <div class="lb-list" id="lb-list"><div class="lb-empty">Cargando...</div></div>
+    </aside>
+  </div>`;
+
+  if(nextLocked){
+    const tick=()=>{const cd=formatMs(msUntil(nextLocked.date));['d','h','m','s'].forEach(k=>{const el=$('cd-'+k);if(el)el.textContent=pad(cd[k]);});};
+    tick();S.cdTimer=setInterval(tick,1000);
+  }
+  document.querySelectorAll('[data-rid]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      const rid=el.dataset.rid||e.target.closest('[data-rid]')?.dataset.rid;
+      if(!rid)return;const r=RETOS.find(x=>x.id===rid);if(r)startReto(r);
+    });
+  });
+  $('reset-btn')?.addEventListener('click',async()=>{
+    if(!confirm('¿Resetear todo el progreso de este usuario? Se borran XP y retos completados.'))return;
+    const reset={xp:0,activeSeconds:0,completedRetos:{}};
+    S.userData=Object.assign({},S.userData,reset);
+    try{await S.db.doc('users/'+S.username).update(reset);}catch(e){console.error(e);}
+    renderDashboard();startLb();
+  });
+  const lbEl=$('lb-list');if(lbEl)renderLb(lbEl);
+}
+
+// ─── RETO SHELL ────────────────────────────────────────────────────
+let _retoStartTime=0,_retoTimer=null;
+
+function retoShellHtml(r,contentHtml,xpEarned){
+  xpEarned=xpEarned||0;
+  return `<div class="reto-screen fadein">
+    <div class="reto-hdr">
+      <button class="reto-close" id="rc">✕</button>
+      <span class="reto-hdr-title">${r.emoji} ${r.title}</span>
+      <div class="xp-chip">⚡ ${xpEarned} XP</div>
+    </div>
+    ${contentHtml}
+  </div>`;
+}
+
+function initRetoClose(r){
+  $('rc').addEventListener('click',()=>{if(confirm('¿Salir? Perderás el progreso de este reto.'))goBackToDash();});
+}
+
+function goBackToDash(){
+  if(S.cdTimer)clearInterval(S.cdTimer);
+  renderDashboard();startLb();
+}
+
+async function completeReto(r,xpEarned,bonusEarned,gotBonus){
+  const activeMs=Date.now()-_retoStartTime;
+  const activeSecs=Math.floor(activeMs/1000);
+  const newXP=(S.userData.xp||0)+xpEarned;
+  const newSecs=(S.userData.activeSeconds||0)+activeSecs;
+  const completedRetos=Object.assign({},(S.userData.completedRetos||{}));
+  completedRetos[r.id]={xp:xpEarned,bonus:bonusEarned,gotBonus,completedAt:new Date().toISOString()};
+  S.userData=Object.assign({},S.userData,{xp:newXP,activeSeconds:newSecs,completedRetos});
+  try{await S.db.doc('users/'+S.username).set(S.userData);}catch(e){console.error(e);}
+  renderRetoComplete(r,xpEarned,bonusEarned,gotBonus);
+}
+
+function renderRetoComplete(r,xpEarned,bonusEarned,gotBonus){
+  const emoji=gotBonus?'🎯':'💪';
+  const msg=gotBonus?'¡Decisión correcta!':'Buena intuición — casi.';
+  app.innerHTML=`
+  <div class="complete-screen fadein">
+    <div class="complete-card">
+      <span class="complete-emoji">${emoji}</span>
+      <h2 class="complete-title">${msg}</h2>
+      <p class="complete-sub">${r.title} completado</p>
+      <div class="xp-box">
+        <span class="xp-big">+${xpEarned}</span>
+        <div class="xp-box-lbl">XP ganados</div>
+        <div class="xp-breakdown">
+          <div class="xp-part"><span class="xp-part-num">${r.xpBase}</span><span class="xp-part-lbl">Por completar</span></div>
+          <div class="xp-part"><span class="xp-part-num" style="color:${gotBonus?'var(--gold)':'var(--text-3)'}">${gotBonus?'+'+bonusEarned:'—'}</span><span class="xp-part-lbl">Bonus decisión</span></div>
+        </div>
+      </div>
+      <div class="open-loop">
+        <div class="open-loop-eye">🔒 El porqué · 23 sep</div>
+        <div class="open-loop-text">${r.revealTeaser}</div>
+      </div>
+      ${S.rank?`<div class="rank-change">Tu posición actual: <strong>${rankLabel(S.rank)}</strong></div>`:''}
+      <button class="btn btn-primary" id="back-btn">Ver clasificación →</button>
+    </div>
+  </div>`;
+  $('back-btn').addEventListener('click',goBackToDash);
+}
+
+// ─── RETO DISPATCH ─────────────────────────────────────────────────
+function startReto(r){
+  if(S.cdTimer){clearInterval(S.cdTimer);S.cdTimer=null;}
+  _retoStartTime=Date.now();
+  switch(r.type){
+    case 'agent-pick':  playAgentPick(r);break;
+    case 'agent-clues': playAgentClues(r);break;
+    case 'budget':      playBudget(r);break;
+    case 'funnel':      playFunnel(r);break;
+    case 'graph':       playGraph(r);break;
+    case 'bluff':       playBluff(r);break;
+  }
+}
+
+// ─── R1: ¿A quién le darías tu casa? ──────────────────────────────
+function playAgentPick(r){
+  let selected=null,phase='pick';
+  function render(){
+    const cardsHtml=r.agents.map(a=>`
+      <button class="agent-card ${phase!=='pick'&&a.id===selected?'selected':''}" data-aid="${a.id}" ${phase!=='pick'?'disabled':''} style="width:100%;text-align:left;cursor:${phase==='pick'?'pointer':'default'}">
+        <span class="agent-emoji">${a.emoji}</span>
+        <div class="agent-name">${a.name}</div>
+        <div class="agent-handle">${a.handle}</div>
+        <div class="agent-bio">${a.bio}</div>
+      </button>`).join('');
+    const actionHtml=phase==='pick'?`<button class="btn btn-primary" id="confirm-btn" disabled>Confirmar elección →</button>`:'';
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Reto · Día 1</div><div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
+        <div class="agents-grid">${cardsHtml}</div>
+        <div style="margin-top:16px">${actionHtml}</div>
+      </div>`);
+    initRetoClose(r);
+    if(phase==='pick'){
+      document.querySelectorAll('.agent-card').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          selected=btn.dataset.aid;
+          document.querySelectorAll('.agent-card').forEach(b=>b.classList.remove('selected'));
+          btn.classList.add('selected');
+          $('confirm-btn').disabled=false;
+        });
+      });
+      $('confirm-btn')?.addEventListener('click',async()=>{
+        try{
+          const voteRef=S.db.doc('votes/'+r.id);
+          const snap=await voteRef.get();
+          const votes=snap.exists?snap.data():{};
+          votes[selected]=(votes[selected]||0)+1;
+          await voteRef.set(votes);
+        }catch(e){console.error(e);}
+        loadVotesAndReveal();
+      });
+    }
+  }
+
+  async function loadVotesAndReveal(){
+    let votes={};
+    try{const snap=await S.db.doc('votes/'+r.id).get();if(snap.exists)votes=snap.data();}catch(e){console.error(e);}
+    const total=Object.values(votes).reduce((a,b)=>a+b,0)||1;
+    const cardsHtml=r.agents.map(a=>{
+      const pct=Math.round(((votes[a.id]||0)/total)*100);
+      const isCorrect=a.id===r.correctAgent;
+      const isSelected=a.id===selected;
+      return `<div class="agent-card ${isCorrect?'correct':isSelected&&!isCorrect?'wrong':''}">
+        <span class="agent-emoji">${a.emoji}</span>
+        <div class="agent-name">${a.name} ${isCorrect?'✓':''}</div>
+        <div class="agent-handle">${a.handle}</div>
+        <div class="agent-bio">${a.bio}</div>
+        <div class="vote-bar"><div class="vote-bar-fill" style="width:${pct}%;background:${isCorrect?'var(--success)':'var(--silver)'}"></div></div>
+        <div class="vote-pct">${pct}% lo eligió</div>
+      </div>`;
+    }).join('');
+    const gotBonus=selected===r.correctAgent;
+    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
+    const correct=r.agents.find(a=>a.id===r.correctAgent);
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card">
+        <div style="text-align:center;padding:20px 0 24px;border-bottom:1px solid var(--border-2);margin-bottom:20px">
+          <div style="font-size:48px;margin-bottom:10px">${gotBonus?'✅':'❌'}</div>
+          <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px">${gotBonus?'¡Correcto!':'Incorrecto'}</div>
+          <div style="font-size:15px;color:var(--text-2)">La respuesta era <strong style="color:var(--white)">${correct?correct.emoji+' '+correct.name:''}</strong></div>
+        </div>
+        <div class="card-eye" style="margin-bottom:12px">Así votó el grupo</div>
+        <div class="agents-grid">${cardsHtml}</div>
+        <div style="margin-top:16px"><button class="btn btn-primary" id="finish-btn">Ver mis XP →</button></div>
+      </div>`,xp);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+  }
+  render();
+}
+
+// ─── R2: El agente invisible ───────────────────────────────────────
+function playAgentClues(r){
+  let clueIdx=0,eliminated=new Set(),chosen=null,phase='clues';
+
+  function buildTableHtml(){
+    const revealed=r.clues.slice(0,clueIdx+1);
+    const agentCols=r.agents.map(a=>`<th style="font-size:11px;text-align:center;padding:6px 4px;color:${eliminated.has(a.id)?'var(--text-3)':'var(--text-1)'}">${a.emoji}<br><span style="font-size:10px">${a.name.split(' ')[0]}</span>${eliminated.has(a.id)?'<br><span style="color:var(--error);font-size:9px">❌</span>':''}</th>`).join('');
+    const rows=revealed.map(c=>{
+      const cells=r.agents.map(a=>`<td style="font-size:12px;text-align:center;padding:5px 4px;color:${eliminated.has(a.id)?'var(--text-3)':'var(--text-2)'}">${c.values[a.id]||'—'}</td>`).join('');
+      return `<tr><td style="font-size:11px;font-weight:600;padding:5px 6px;color:var(--text-3);white-space:nowrap">${c.label}</td>${cells}</tr>`;
+    }).join('');
+    return `<div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="font-size:11px;padding:6px;text-align:left;color:var(--text-3)">Dato</th>${agentCols}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  function render(){
+    const canNextClue=clueIdx<r.clues.length-1;
+    const actionHtml=phase==='clues'
+      ?`<div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${canNextClue?`<button class="btn btn-outline" id="next-clue-btn">+ Revelar dato</button>`:''}
+          ${clueIdx>0?`<button class="btn btn-outline" id="elim-mode-btn">Eliminar agente</button>`:''}
+          <button class="btn btn-primary" id="pick-btn">¿Quién es el invisible? →</button>
+        </div>`
+      :`<button class="btn btn-primary" id="confirm-pick-btn" ${chosen?'':'disabled'}>Confirmar →</button>`;
+
+    const agentsHtml=phase==='pick'?r.agents.map(a=>`
+      <button class="agent-card${eliminated.has(a.id)?' eliminated':''}${chosen===a.id?' selected':''}" data-aid="${a.id}" ${eliminated.has(a.id)?'disabled':''}>
+        <span class="agent-emoji">${a.emoji}</span>
+        <div class="agent-name">${a.name}</div>
+        <div class="agent-handle">${a.handle}</div>
+      </button>`).join(''):'';
+
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Dato ${clueIdx+1} de ${r.clues.length} revelado</div>
+        <div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
+        ${buildTableHtml()}
+        ${phase==='pick'?`<div style="margin-bottom:12px;font-size:12px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Elige al agente invisible</div><div class="agents-grid">${agentsHtml}</div>`:''}
+        <div style="margin-top:16px">${actionHtml}</div>
+      </div>`);
+    initRetoClose(r);
+    $('next-clue-btn')?.addEventListener('click',()=>{clueIdx++;render();});
+    $('pick-btn')?.addEventListener('click',()=>{phase='pick';render();});
+    $('elim-mode-btn')?.addEventListener('click',()=>{
+      const active=r.agents.filter(a=>!eliminated.has(a.id));
+      if(active.length<=1)return;
+      const target=active.find(a=>!eliminated.has(a.id)&&a.id!==chosen);
+      if(target){eliminated.add(target.id);render();}
+    });
+    if(phase==='pick'){
+      document.querySelectorAll('.agent-card:not([disabled])').forEach(btn=>{
+        btn.addEventListener('click',()=>{chosen=btn.dataset.aid;render();});
+      });
+      $('confirm-pick-btn')?.addEventListener('click',showClueReveal);
+    }
+  }
+
+  function showClueReveal(){
+    const gotBonus=chosen===r.correctAgent;
+    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
+    const correct=r.agents.find(a=>a.id===r.correctAgent);
+    const allTableRows=r.clues.map(c=>{
+      const cells=r.agents.map(a=>`<td style="font-size:12px;text-align:center;padding:5px 4px;${a.id===r.correctAgent?'font-weight:700;color:var(--gold)':''}">${c.values[a.id]||'—'}</td>`).join('');
+      return `<tr><td style="font-size:11px;font-weight:600;padding:5px 6px;color:var(--text-3);white-space:nowrap">${c.label}</td>${cells}</tr>`;
+    }).join('');
+    const agentCols=r.agents.map(a=>`<th style="font-size:11px;text-align:center;padding:6px 4px;${a.id===r.correctAgent?'color:var(--gold)':''}">${a.emoji}<br><span style="font-size:10px">${a.name.split(' ')[0]}</span>${a.id===r.correctAgent?' ✓':a.id===chosen&&!gotBonus?' ✗':''}</th>`).join('');
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card">
+        <div style="text-align:center;padding:20px 0 24px;border-bottom:1px solid var(--border-2);margin-bottom:20px">
+          <div style="font-size:48px;margin-bottom:10px">${gotBonus?'✅':'❌'}</div>
+          <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px">${gotBonus?'¡Correcto!':'Incorrecto'}</div>
+          <div style="font-size:15px;color:var(--text-2)">El agente invisible era <strong style="color:var(--white)">${correct?correct.emoji+' '+correct.name:''}</strong></div>
+        </div>
+        <div class="card-eye" style="margin-bottom:12px">Todos los datos revelados</div>
+        <div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="font-size:11px;padding:6px;text-align:left;color:var(--text-3)">Dato</th>${agentCols}</tr></thead><tbody>${allTableRows}</tbody></table></div>
+        <div style="margin-top:16px"><button class="btn btn-primary" id="finish-btn">Ver mis XP →</button></div>
+      </div>`,xp);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+  }
+  render();
+}
+
+// ─── R3: Los 1.000€ ───────────────────────────────────────────────
+function playBudget(r){
+  const alloc={fotos:0,anuncios:0,videos:0,landing:0,contactos:0};
+  let leadChoice=null;
+
+  function calcStats(){
+    const vis=alloc.anuncios*40;
+    const ctr=0.03+(alloc.videos>=150?0.02:0);
+    const clics=Math.round(vis*ctr);
+    const convL=0.20+(alloc.landing>=150?0.15:0);
+    const leads=Math.round(clics*convL);
+    const leadsFrios=Math.round(alloc.contactos/50);
+    const contestan=Math.round(leads*0.30);
+    return{vis,clics,leads,leadsFrios,contestan};
+  }
+
+  function render(){
+    const spent=Object.values(alloc).reduce((a,b)=>a+b,0);
+    const remaining=r.totalBudget-spent;
+    const channelsHtml=r.channels.map(ch=>{
+      const val=alloc[ch.id]||0;
+      return `<div class="budget-ch">
+        <div class="budget-ch-hdr"><span style="font-size:20px">${ch.icon}</span><span class="budget-ch-name">${ch.label}</span><span class="budget-ch-val">${val}€</span></div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">${ch.desc}</div>
+        <input type="range" class="budget-slider" data-ch="${ch.id}" min="0" max="${r.totalBudget}" step="50" value="${val}">
+      </div>`;
+    }).join('');
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Reto · Día 2</div>
+        <div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
+        <div class="budget-remaining"><span class="budget-rem-lbl">Presupuesto restante</span><span class="budget-rem-val" style="color:${remaining<0?'var(--error)':remaining===0?'var(--success)':'var(--silver-2)'}">${remaining}€</span></div>
+        <div class="budget-channels">${channelsHtml}</div>
+        <div style="margin-top:16px">
+          <button class="btn btn-primary" id="submit-budget" ${remaining!==0||spent===0?'disabled':''}>Confirmar reparto →</button>
+          <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:8px">Tienes que repartir exactamente los 1.000€</div>
+        </div>
+      </div>`);
+    initRetoClose(r);
+    document.querySelectorAll('.budget-slider').forEach(sl=>{
+      sl.addEventListener('input',()=>{
+        alloc[sl.dataset.ch]=parseInt(sl.value);
+        const s2=Object.values(alloc).reduce((a,b)=>a+b,0);
+        if(s2>r.totalBudget){alloc[sl.dataset.ch]-=s2-r.totalBudget;sl.value=alloc[sl.dataset.ch];}
+        render();
+      });
+    });
+    $('submit-budget')?.addEventListener('click',showDay1);
+  }
+
+  function showDay1(){
+    const s=calcStats();
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Resultado · Día 1</div>
+        <div class="card-title">Tu anuncio ha arrancado</div>
+        <div class="budget-result-grid" style="margin-bottom:20px">
+          <div class="budget-result-item"><span class="budget-result-num">${s.vis.toLocaleString()}</span><span class="budget-result-lbl">Visualizaciones</span></div>
+          <div class="budget-result-item"><span class="budget-result-num">${s.clics.toLocaleString()}</span><span class="budget-result-lbl">Clics</span></div>
+        </div>
+        <button class="btn btn-primary" id="to-day2">Día 2 →</button>
+      </div>`);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    $('to-day2').addEventListener('click',showDay2);
+  }
+
+  function showDay2(){
+    const s=calcStats();
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Resultado · Día 2</div>
+        <div class="card-title">Tus leads</div>
+        <div class="budget-result-grid" style="margin-bottom:8px">
+          <div class="budget-result-item"><span class="budget-result-num">${s.leads}</span><span class="budget-result-lbl">Leads captados</span></div>
+          <div class="budget-result-item"><span class="budget-result-num">${s.contestan}</span><span class="budget-result-lbl">Contestan</span></div>
+        </div>
+        ${s.leadsFrios>0?`<div style="font-size:12px;color:var(--text-3);text-align:center;margin-bottom:14px">+ ${s.leadsFrios} lead${s.leadsFrios!==1?'s':''} frío${s.leadsFrios!==1?'s':''} de tus contactos (no contestan)</div>`:''}
+        <div style="background:var(--gold-dim);border:1px solid rgba(244,196,48,0.2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px">
+          <div style="font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:10px">Uno de esos interesados tiene una vivienda real que quiere vender. ¿Qué haces?</div>
+          <div class="path-opts">${r.leadOptions.map(o=>`<button class="path-opt" data-oid="${o.id}"><span class="path-letter">${o.id}</span><span>${o.label}</span></button>`).join('')}</div>
+        </div>
+      </div>`);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    let picked=false;
+    document.querySelectorAll('.path-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(picked)return;picked=true;leadChoice=btn.dataset.oid;
+        const ok=leadChoice===r.correctLead;
+        document.querySelectorAll('.path-opt').forEach(b=>{b.setAttribute('data-locked','1');b.style.cursor='default';});
+        btn.setAttribute(ok?'data-correct':'data-wrong','1');
+        if(!ok)document.querySelector('[data-oid="'+r.correctLead+'"]').setAttribute('data-correct','1');
+        setTimeout(showFinalResult,900);
+      });
+    });
+  }
+
+  function showFinalResult(){
+    const s=calcStats();
+    const probBase={C:70,B:45,A:30,D:20}[leadChoice]||0;
+    const bonusFotos=alloc.fotos>=150?20:0;
+    const probFinal=probBase+bonusFotos;
+    const exito=probFinal>=70;
+    const gotBonus=exito;
+    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
+    const equilibrado=r.channels.every(ch=>(alloc[ch.id]||0)>0&&(alloc[ch.id]||0)<600);
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Resultado final</div>
+        <div class="card-title">${exito?'🏆 Has generado una oportunidad.':'💀 Has quemado tu oportunidad.'}</div>
+        <div class="card-desc" style="margin-bottom:16px">${exito&&equilibrado?'…incluso sin usar todo el presupuesto en un único frente.':!exito?'El lead estaba ahí. Falló la forma de reaccionar.':''}</div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Tu distribución</div>
+          ${r.channels.map(ch=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${ch.icon} ${ch.label}</span><span style="font-family:var(--font-d);font-weight:700">${alloc[ch.id]||0}€</span></div>`).join('')}
+        </div>
+        <button class="btn btn-primary" id="finish-btn">Ver mis XP →</button>
+      </div>`,xp);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+  }
+  render();
+}
+
+// ─── R4: El embudo roto ────────────────────────────────────────────
+function playFunnel(r){
+  const revealed=new Set();
+  let chosen=null,phase='investigate';
+
+  function buildCascadeHtml(){
+    return r.stages.map((s,i)=>[
+      `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm)">
+        <span style="font-size:20px">${s.icon}</span>
+        <span style="flex:1;font-size:13px;color:var(--text-2)">${s.label}</span>
+        <span style="font-family:var(--font-d);font-size:17px;font-weight:800;color:var(--silver-1)">${s.value}</span>
+      </div>`,
+      i<r.stages.length-1?`<div style="text-align:center;font-size:14px;color:var(--text-3);padding:2px 0">↓</div>`:''
+    ].join('')).join('');
+  }
+
+  function buildSuspectsHtml(){
+    return r.suspects.map(s=>{
+      const isRev=revealed.has(s.id);
+      const isSel=phase==='pick'&&chosen===s.id;
+      return `<div class="funnel-suspect${isSel?' selected':''}" data-sid="${s.id}">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">${s.icon}</span>
+          <span style="flex:1;font-size:14px;font-weight:600">${s.label}</span>
+          ${phase==='investigate'?`<button class="btn-inv ${isRev?'inv-done':''}" data-inv="${s.id}">${isRev?'✓ Investigado':'🔍 Investigar'}</button>`:''}
+        </div>
+        ${isRev?`<div style="font-size:13px;color:var(--text-2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${s.clue}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  function render(){
+    const allInv=r.suspects.every(s=>revealed.has(s.id));
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Reto · Día 2</div>
+        <div class="card-title">${r.title}</div>
+        <div style="margin-bottom:14px">${buildCascadeHtml()}</div>
+        <div style="font-size:12px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">${phase==='investigate'?'Investiga los sospechosos':'¿Dónde está la fuga?'}</div>
+        <div style="display:flex;flex-direction:column;gap:8px">${buildSuspectsHtml()}</div>
+        <div style="margin-top:16px">
+          ${phase==='investigate'
+            ?`<button class="btn btn-primary" id="to-pick" ${allInv?'':'disabled'}>¿Dónde está la fuga? →</button>${!allInv?`<div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:6px">Investiga todos los puntos primero</div>`:''}`
+            :`<button class="btn btn-primary" id="confirm-funnel" ${chosen?'':'disabled'}>Confirmar →</button>`}
+        </div>
+      </div>`);
+    initRetoClose(r);
+    document.querySelectorAll('.btn-inv').forEach(btn=>{
+      btn.addEventListener('click',e=>{e.stopPropagation();revealed.add(btn.dataset.inv);render();});
+    });
+    $('to-pick')?.addEventListener('click',()=>{phase='pick';render();});
+    if(phase==='pick'){
+      document.querySelectorAll('.funnel-suspect').forEach(el=>{
+        el.style.cursor='pointer';
+        el.addEventListener('click',()=>{chosen=el.dataset.sid;render();});
+      });
+      $('confirm-funnel')?.addEventListener('click',showFunnelResult);
+    }
+  }
+
+  function showFunnelResult(){
+    const gotBonus=chosen===r.brokenStage;
+    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
+    const chosenSuspect=r.suspects.find(s=>s.id===chosen);
+    const correctSuspect=r.suspects.find(s=>s.id===r.brokenStage);
+    const suspectsHtml=r.suspects.map(s=>`
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r-sm);background:${s.id===r.brokenStage?'rgba(244,196,48,0.08)':s.id===chosen&&!gotBonus?'rgba(239,68,68,0.08)':'var(--surface-2)'};border:1px solid ${s.id===r.brokenStage?'rgba(244,196,48,0.3)':s.id===chosen&&!gotBonus?'rgba(239,68,68,0.3)':'var(--border)'}">
+        <span style="font-size:18px">${s.icon}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${s.label}${s.id===r.brokenStage?' ← LA FUGA':''}</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px">${s.clue}</div></div>
+      </div>`).join('');
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Resultado</div>
+        <div class="card-title">${gotBonus?'¡Correcto! La fuga estaba en '+(correctSuspect?correctSuspect.label:'')+'.':'La fuga no estaba en '+(chosenSuspect?chosenSuspect.label:'')+'.'}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">${suspectsHtml}</div>
+        <div style="margin-top:16px"><button class="btn btn-primary" id="finish-btn">Ver mis XP →</button></div>
+      </div>`,xp);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+  }
+  render();
+}
+
+// ─── R5: La operación imposible ────────────────────────────────────
+function playGraph(r){
+  let phase='node',pickedNode=null,pickedDest=null;
+
+  function renderPhaseNode(){
+    const nodesHtml=r.nodes.map(n=>`
+      <button class="path-opt" data-nid="${n.id}">
+        <span class="path-letter" style="font-size:16px">${n.icon}</span>
+        <span>${n.label}</span>
+      </button>`).join('');
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Reto · Día 3 · Paso 1 de 2</div>
+        <div class="card-title">${r.title}</div>
+        <div class="card-desc">${r.intro}</div>
+        <div style="font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:12px">¿A través de quién llegas al comprador?</div>
+        <div class="path-opts">${nodesHtml}</div>
+      </div>`);
+    initRetoClose(r);
+    document.querySelectorAll('.path-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{pickedNode=btn.dataset.nid;phase='dest';renderPhaseDest();});
+    });
+  }
+
+  function renderPhaseDest(){
+    const node=r.nodes.find(n=>n.id===pickedNode);
+    const destsHtml=r.destinations.map(d=>`
+      <button class="path-opt" data-did="${d.id}">
+        <span class="path-letter" style="font-size:16px">${d.icon}</span>
+        <span>${d.label}</span>
+      </button>`).join('');
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Reto · Día 3 · Paso 2 de 2</div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:6px">Vía: ${node?node.icon+' '+node.label:''}</div>
+        <div class="card-title">¿A qué comprador apuntas?</div>
+        <div class="path-opts" style="margin-top:16px">${destsHtml}</div>
+        <button class="btn btn-outline" id="back-node" style="margin-top:10px;width:100%">← Volver a elegir canal</button>
+      </div>`);
+    initRetoClose(r);
+    $('back-node')?.addEventListener('click',()=>{phase='node';pickedNode=null;renderPhaseNode();});
+    document.querySelectorAll('.path-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{pickedDest=btn.dataset.did;showGraphResult();});
+    });
+  }
+
+  function showGraphResult(){
+    const node=r.nodes.find(n=>n.id===pickedNode);
+    const dest=r.destinations.find(d=>d.id===pickedDest);
+    const connType=node&&node.connects&&node.connects[pickedDest];
+    const optimal=pickedNode===r.correctNode&&pickedDest===r.correctDest;
+    const possible=!!connType;
+    const gotBonus=optimal;
+    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
+    let verdict,color,hint;
+    if(optimal){verdict='Camino óptimo';color='var(--gold)';hint='Conexión directa y rápida al comprador correcto.';}
+    else if(connType==='slow'){verdict='Camino lento';color='var(--text-2)';hint='Puedes llegar, pero tardarás mucho más.';}
+    else if(connType==='partial'){verdict='Acceso parcial';color='var(--text-2)';hint='Llegas pero con fricción importante.';}
+    else{verdict='Callejón sin salida';color='var(--error)';hint='Este canal no conecta con ese comprador.';}
+    const correctNode=r.nodes.find(n=>n.id===r.correctNode);
+    const correctDest=r.destinations.find(d=>d.id===r.correctDest);
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Resultado</div>
+        <div class="card-title">${optimal?'Camino óptimo encontrado.':possible?'Llegas, pero no es lo mejor.':'Sin salida — a intentarlo de otra forma.'}</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:16px">
+          <span style="font-size:24px">${node?node.icon:''}</span>
+          <div style="font-size:16px;color:var(--text-3)">→</div>
+          <span style="font-size:24px">${dest?dest.icon:''}</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:700;color:${color}">${verdict}</div><div style="font-size:12px;color:var(--text-3);margin-top:2px">${hint}</div></div>
+        </div>
+        ${!optimal?`<div style="font-size:13px;color:var(--text-3);margin-bottom:16px">El camino óptimo era: <strong style="color:var(--gold)">${correctNode?correctNode.icon+' '+correctNode.label:''} → ${correctDest?correctDest.icon+' '+correctDest.label:''}</strong></div>`:''}
+        <button class="btn btn-primary" id="finish-btn">Ver mis XP →</button>
+      </div>`,xp);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+  }
+  renderPhaseNode();
+}
+
+// ─── R6: El farol ──────────────────────────────────────────────────
+function playBluff(r){
+  let round1Answer=null,round2Answer=null;
+
+  function metricsForChoice(roundMetrics,choice){
+    const m=roundMetrics[choice];
+    if(!m)return'';
+    return `<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-top:12px">
+      <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Tu decisión — métricas estimadas</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${m.prob}</div><div style="font-size:10px;color:var(--text-3)">Probabilidad cierre</div></div>
+        <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${m.comision}</div><div style="font-size:10px;color:var(--text-3)">Comisión</div></div>
+        <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${m.tiempo}</div><div style="font-size:10px;color:var(--text-3)">Tiempo</div></div>
+      </div>
+    </div>`;
+  }
+
+  function renderRound1(){
+    const optsHtml=r.options.map(o=>`<button class="path-opt" data-oid="${o.id}"><span class="path-letter">${o.id}</span><span>${o.label}</span></button>`).join('');
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card">
+        <div class="card-eye">Ronda 1 de 2</div>
+        <div class="card-title">${r.round1.scenario}</div>
+        <div class="card-desc">${r.intro}</div>
+        <div style="font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:12px">¿Qué haces?</div>
+        <div class="path-opts" id="opts1">${optsHtml}</div>
+      </div>`);
+    initRetoClose(r);
+    let picked=false;
+    document.querySelectorAll('.path-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(picked)return;picked=true;
+        round1Answer=btn.dataset.oid;
+        document.querySelectorAll('.path-opt').forEach(b=>{b.setAttribute('data-locked','1');b.style.cursor='default';});
+        btn.setAttribute('data-chosen','1');
+        const metricsEl=document.createElement('div');
+        metricsEl.innerHTML=metricsForChoice(r.round1.metrics,round1Answer);
+        document.querySelector('#opts1').parentNode.appendChild(metricsEl);
+        const nextEl=document.createElement('div');nextEl.style.marginTop='16px';
+        nextEl.innerHTML=`<button class="btn btn-primary" id="to-round2">Nueva información →</button>`;
+        document.querySelector('#opts1').parentNode.appendChild(nextEl);
+        $('to-round2').addEventListener('click',renderRound2);
+      });
+    });
+  }
+
+  function renderRound2(){
+    const optsHtml=r.options.map(o=>`<button class="path-opt" data-oid="${o.id}"><span class="path-letter">${o.id}</span><span>${o.label}</span></button>`).join('');
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card">
+        <div class="card-eye">Ronda 2 de 2</div>
+        <div style="background:rgba(244,196,48,0.08);border:1px solid rgba(244,196,48,0.25);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Nueva información</div>
+          <div style="font-size:14px">${r.round2.scenario}</div>
+        </div>
+        <div style="font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:12px">¿Cambias tu decisión?</div>
+        <div class="path-opts" id="opts2">${optsHtml}</div>
+      </div>`);
+    initRetoClose(r);
+    let picked=false;
+    document.querySelectorAll('.path-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(picked)return;picked=true;
+        round2Answer=btn.dataset.oid;
+        document.querySelectorAll('.path-opt').forEach(b=>{b.setAttribute('data-locked','1');b.style.cursor='default';});
+        btn.setAttribute('data-chosen','1');
+        const metricsEl=document.createElement('div');
+        metricsEl.innerHTML=metricsForChoice(r.round2.metrics,round2Answer);
+        document.querySelector('#opts2').parentNode.appendChild(metricsEl);
+        const nextEl=document.createElement('div');nextEl.style.marginTop='16px';
+        nextEl.innerHTML=`<button class="btn btn-primary" id="to-final">Ver resultado →</button>`;
+        document.querySelector('#opts2').parentNode.appendChild(nextEl);
+        $('to-final').addEventListener('click',showBluffResult);
+      });
+    });
+  }
+
+  function showBluffResult(){
+    const gotBonus=round2Answer===r.correctOption;
+    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
+    const changed=round1Answer!==round2Answer;
+    const opt2=r.round2.metrics[round2Answer];
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card"><div class="card-eye">Resultado</div>
+        <div class="card-title">${gotBonus?'Decisión óptima en la ronda 2.':'¿Era la mejor jugada?'}</div>
+        <div style="display:flex;gap:12px;margin-bottom:16px">
+          <div style="flex:1;padding:10px;background:var(--surface-2);border-radius:var(--r-sm);text-align:center">
+            <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">Ronda 1</div>
+            <div style="font-family:var(--font-d);font-size:18px;font-weight:800">${round1Answer}</div>
+          </div>
+          <div style="display:flex;align-items:center;font-size:18px;color:var(--text-3)">${changed?'→ cambiaste':'= mantuviste'}</div>
+          <div style="flex:1;padding:10px;background:var(--surface-2);border-radius:var(--r-sm);text-align:center">
+            <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">Ronda 2</div>
+            <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:${gotBonus?'var(--gold)':'var(--text-1)'}">${round2Answer}</div>
+          </div>
+        </div>
+        ${opt2?`<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Métricas de tu decisión final</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.prob}</div><div style="font-size:10px;color:var(--text-3)">Prob. cierre</div></div>
+            <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.comision}</div><div style="font-size:10px;color:var(--text-3)">Comisión</div></div>
+            <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.tiempo}</div><div style="font-size:10px;color:var(--text-3)">Tiempo</div></div>
+          </div>
+        </div>`:''}
+        <button class="btn btn-primary" id="finish-btn">Ver mis XP →</button>
+      </div>`,xp);
+    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
+    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+  }
+  renderRound1();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────
+async function init(){
+  const db = makeDb(
+    'https://fotjtkxdkdenjnfpzhlk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvdGp0a3hka2RlbmpuZnB6aGxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTg5OTQsImV4cCI6MjEwMDE5NDk5NH0.H5frPORYnYNEFqTRV_tww2E6P-_K3UPGVFAUppIhvsQ'
+  );
+  S.db = db;
+
+  const params=new URLSearchParams(location.search);
+  const pUser=params.get('u'),pType=params.get('type');
+  if(pUser&&/^[a-z0-9_\-]{2,30}$/.test(pUser)){
+    S.username=pUser;
+    if(pType==='agent'||pType==='novice'){
+      const u={username:pUser,type:pType,xp:0,activeSeconds:0,completedRetos:{}};
+      S.userType=pType;S.userData=u;startLb();renderDashboard();return;
+    }
+    renderProfile();return;
+  }
+  const saved=localStorage.getItem('aio_u');
+  if(saved){
+    try{
+      const snap=await S.db.doc('users/'+saved).get();
+      if(snap.exists){const d=snap.data();S.username=saved;S.userType=d.type;S.userData=Object.assign({xp:0,activeSeconds:0,completedRetos:{}},d);startLb();renderDashboard();return;}
+    }catch(e){console.error(e);}
+    localStorage.removeItem('aio_u');
+  }
+  renderWelcome();
+}
+
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.action==='aio_login'&&d.username&&/^[a-z0-9_\-]{2,30}$/.test(d.username)&&S.db){
+    const t=d.type==='novice'?'novice':'agent';
+    const u={username:d.username,type:t,xp:0,activeSeconds:0,completedRetos:{}};
+    S.username=d.username;S.userType=t;S.userData=u;startLb();renderDashboard();
+  }
+  if(d.action==='aio_play'&&d.id){const r=RETOS.find(x=>x.id===d.id);if(r)startReto(r);}
+});
+
+init();
+</script>
+</body>
+</html>
