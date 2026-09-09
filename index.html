@@ -540,6 +540,7 @@ function rankLabel(r){if(!r)return'--';if(r===1)return'🥇';if(r===2)return'�
 
 // ─── Leaderboard ────────────────────────────────────────────────────
 function startLb(){
+  if(!S.db) return;
   if(S.lbUnsub) S.lbUnsub();
   S.lbUnsub=S.db.collection('users').orderBy('xp','desc').limit(25).onSnapshot(function(snap){
     S.leaderboard=snap.docs.map(function(d,i){return Object.assign({rank:i+1},d.data());});
@@ -587,9 +588,9 @@ function renderWelcome(){
     btn.disabled=true;btn.textContent='Comprobando...';
     try{
       const snap=await S.db.doc('users/'+val).get();
-      if(snap.exists){const d=snap.data();S.username=val;S.userType=d.type;S.userData=d;localStorage.setItem('aio_u',val);startLb();renderDashboard();}
+      if(snap.exists){const d=snap.data();S.username=val;S.userType=d.type;S.userData=Object.assign({xp:0,activeSeconds:0,completedRetos:{}},d);localStorage.setItem('aio_u',val);try{startLb();}catch(e){}renderDashboard();}
       else{S.username=val;renderProfile();}
-    }catch(e){console.error('DB error:',e);S.username=val;renderProfile();}
+    }catch(e){console.warn('DB no disponible:',e);S.username=val;renderProfile();}
   });
 }
 
@@ -618,8 +619,10 @@ function renderProfile(){
   btn.addEventListener('click',async()=>{
     if(!sel)return;btn.disabled=true;btn.textContent='Creando perfil...';
     const u={username:S.username,type:sel,xp:0,activeSeconds:0,completedRetos:{}};
-    try{await S.db.doc('users/'+S.username).set(u);S.userType=sel;S.userData=u;localStorage.setItem('aio_u',S.username);startLb();renderDashboard();}
-    catch(e){console.error(e);btn.disabled=false;btn.textContent='Empezar los 100 días →';}
+    try{await S.db.doc('users/'+S.username).set(u);}catch(e){console.warn('DB no disponible, modo local:',e);}
+    S.userType=sel;S.userData=u;localStorage.setItem('aio_u',S.username);
+    try{startLb();}catch(e){console.warn('Leaderboard no disponible',e);}
+    renderDashboard();
   });
 }
 
@@ -748,7 +751,7 @@ async function completeReto(r,xpEarned,bonusEarned,gotBonus){
   const completedRetos=Object.assign({},(S.userData.completedRetos||{}));
   completedRetos[r.id]={xp:xpEarned,bonus:bonusEarned,gotBonus,completedAt:new Date().toISOString()};
   S.userData=Object.assign({},S.userData,{xp:newXP,activeSeconds:newSecs,completedRetos});
-  try{await S.db.doc('users/'+S.username).set(S.userData);}catch(e){console.error(e);}
+  try{await S.db.doc('users/'+S.username).set(S.userData);}catch(e){console.warn('DB sync fallida, progreso en local',e);}
   renderRetoComplete(r,xpEarned,bonusEarned,gotBonus);
 }
 
