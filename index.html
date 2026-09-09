@@ -128,6 +128,8 @@ h1{font-weight:800;}h2{font-weight:700;}h3{font-weight:600;}
 .agent-card:hover{border-color:var(--silver-3);background:var(--surface-3);}
 .agent-card.selected{border-color:var(--silver-2);background:rgba(196,205,216,0.2);box-shadow:0 0 0 1px var(--silver-2),inset 0 0 0 1px var(--silver-2);}
 .agent-card.selected .agent-name::after{content:' ✓';color:var(--silver-2);}
+.agent-card-locked{cursor:default;pointer-events:none;}
+.agent-card-front{cursor:pointer;}
 .agent-card.correct{border-color:var(--success);background:var(--success-dim);box-shadow:0 0 0 1px var(--success);}
 .agent-card.wrong{border-color:var(--error);background:var(--error-dim);box-shadow:0 0 0 1px var(--error);}
 .agent-card.eliminated{opacity:0.3;pointer-events:none;}
@@ -364,16 +366,21 @@ const RETOS = [
   id:'r1', profile:'novice', date:'2026-09-09', dayLabel:'Miércoles 16 sep',
   title:'¿A quién le darías tu casa?', emoji:'🏠', type:'agent-pick',
   xpBase:50, xpBonus:50,
-  intro:'Cuatro agentes quieren gestionar tu venta. Solo uno trabaja con el sistema que realmente funciona hoy. ¿Sabrás cuál es?',
+  intro:'Cuatro agentes. Cuatro perfiles completamente distintos. Imagina que todos quieren gestionar la venta de tu casa. Solo puedes elegir uno. ¿En cuál confiarías?',
+  subIntro:'Pincha en cada tarjeta, revisa su perfil y toma tu decisión.',
   agents:[
     {id:'a', emoji:'👩‍💼', name:'Laura Sánchez',  handle:'@laurasanchez.realtor',
-     bio:'8 años en el sector. Especialista en pisos de lujo. Cierra el 90% de sus mandatos.', seguidores:'2.847'},
+     bio:'Te ayudo a encontrar la casa de tus sueños.', seguidores:'2.847', ubicacion:'Madrid', cta:'DM para más información',
+     transmite:{confianza:'ALTA', diferenciacion:'MEDIA', autoridad:'MEDIA', valor:'MEDIO'}},
     {id:'b', emoji:'👨‍💼', name:'Marcos Ruiz',    handle:'@marcosruiz.inmobiliario',
-     bio:'Ex-bancario. Fuerte en financiación y negociación. Trabaja con 3 agencias.', seguidores:'438'},
+     bio:'Te ayudo a vender sin regalar tu casa al primero que aparece.', seguidores:'438', ubicacion:'Valencia', cta:'Hablamos por DM',
+     transmite:{confianza:'ALTA', diferenciacion:'ALTA', autoridad:'MEDIA', valor:'ALTO'}},
     {id:'c', emoji:'👩‍💻', name:'Ana Torres',     handle:'@anatorres.proptech',
-     bio:'Lifestyle inmobiliario premium. Eventos exclusivos, Lamborghinis, propiedades de lujo.', seguidores:'12.400'},
+     bio:'Real Estate | Luxury | Inversiones & propiedades | Business · Lifestyle · Networking', seguidores:'12.400', ubicacion:'Marbella · Madrid · Dubai', cta:'',
+     transmite:{confianza:'MEDIA', autoridad:'ALTA', diferenciacion:'ALTA', valor:'MEDIO'}},
     {id:'d', emoji:'👨‍🏫', name:'Roberto Silva',  handle:'@robertosilva.realty',
-     bio:'"6 meses publicada y nadie pregunta — así lo arreglé." Resuelve problemas concretos.', seguidores:'913'},
+     bio:'¿Llevas meses intentando vender y nadie pregunta? Te ayudo a conseguir propietarios que sí quieren vender. +75 propiedades vendidas.', seguidores:'913', ubicacion:'España y Andorra', cta:'Escríbeme: VENDER',
+     transmite:{confianza:'ALTA', diferenciacion:'ALTA', autoridad:'ALTA', valor:'ALTA'}},
   ],
   correctAgent:'d',
   revealTeaser:'Un agente real digitalizó su operativa y cambió todo. El 23 de septiembre te contamos exactamente cómo y qué resultados obtuvo.',
@@ -408,11 +415,11 @@ const RETOS = [
   intro:'Acabas de empezar como agente. Tienes 1.000€ para conseguir tu primera oportunidad. Repártelos como quieras entre estas 5 opciones.',
   totalBudget:1000,
   channels:[
-    {id:'fotos',     label:'Fotos profesionales', icon:'📸', desc:'Aumenta la confianza del lead real'},
-    {id:'anuncios',  label:'Anuncios',             icon:'📢', desc:'Determina cuánta gente ve tu propuesta'},
-    {id:'videos',    label:'Vídeos',               icon:'🎥', desc:'+2% CTR si inviertes ≥150€'},
-    {id:'landing',   label:'Landing page',         icon:'🌐', desc:'+15% conversión si inviertes ≥150€'},
-    {id:'contactos', label:'Activar contactos',    icon:'🤝', desc:'Leads fríos de tu red personal'},
+    {id:'fotos',     label:'Fotos profesionales', icon:'📸', desc:'Material visual del inmueble'},
+    {id:'anuncios',  label:'Anuncios',             icon:'📢', desc:'Difusión del inmueble en plataformas'},
+    {id:'videos',    label:'Vídeos',               icon:'🎥', desc:'Contenido audiovisual del inmueble'},
+    {id:'landing',   label:'Landing page',         icon:'🌐', desc:'Página de captación de interesados'},
+    {id:'contactos', label:'Activar contactos',    icon:'🤝', desc:'Prospección en tu red personal'},
   ],
   leadOptions:[
     {id:'A', label:'Llamarlo inmediatamente.'},
@@ -808,29 +815,47 @@ function startReto(r){
 
 // ─── R1: ¿A quién le darías tu casa? ──────────────────────────────
 function playAgentPick(r){
-  let selected=null,phase='pick';
+  let selected=null,phase='pick',expanded=null;
   function render(){
-    const cardsHtml=r.agents.map(a=>`
-      <button class="agent-card ${phase!=='pick'&&a.id===selected?'selected':''}" data-aid="${a.id}" ${phase!=='pick'?'disabled':''} style="width:100%;text-align:left;cursor:${phase==='pick'?'pointer':'default'}">
-        <span class="agent-emoji">${a.emoji}</span>
-        <div class="agent-name">${a.name}</div>
-        <div class="agent-handle">${a.handle}</div>
-        <div class="agent-bio">${a.bio}</div>
-      </button>`).join('');
-    const actionHtml=phase==='pick'?`<button class="btn btn-primary" id="confirm-btn" disabled style="opacity:0.35;transition:opacity 0.2s">Confirmar elección →</button>`:'';
+    function transmiteHtml(t){
+      if(!t)return '';
+      return `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">¿Qué transmite?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${Object.entries(t).map(([k,v])=>`<div style="font-size:11px"><span style="color:var(--text-3)">${k.charAt(0).toUpperCase()+k.slice(1)}: </span><span style="font-weight:700;color:${v==='ALTA'||v==='ALTO'?'var(--success)':v==='BAJA'||v==='BAJO'?'var(--error)':'var(--text-2)'}">${v}</span></div>`).join('')}</div></div>`;
+    }
+    const cardsHtml=r.agents.map(a=>{
+      const isExp=expanded===a.id;
+      const isSel=phase!=='pick'&&a.id===selected;
+      return `<div class="agent-card ${isSel?'selected':''} ${phase==='pick'?'':'agent-card-locked'}" data-aid="${a.id}" style="${phase==='pick'?'cursor:pointer':'cursor:default'}">
+        <div class="agent-card-front" data-expand="${a.id}">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:${isExp?'10px':'0'}">
+            <span class="agent-emoji" style="font-size:28px">${a.emoji}</span>
+            <div><div class="agent-name" style="font-size:14px">${a.name}</div><div class="agent-handle">${a.handle} · ${a.seguidores} seg.</div></div>
+          </div>
+          ${isExp?`<div class="agent-bio" style="margin-bottom:8px">${a.bio}</div>${a.ubicacion?`<div style="font-size:11px;color:var(--text-3);margin-bottom:4px">📍 ${a.ubicacion}</div>`:''}${a.cta?`<div style="font-size:11px;color:var(--text-3);font-style:italic">${a.cta}</div>`:''}${transmiteHtml(a.transmite)}<div style="margin-top:10px"><button class="btn" data-select="${a.id}" style="width:100%;font-size:13px;padding:10px">Elegir este agente</button></div>`:`<div style="font-size:11px;color:var(--text-3);margin-top:4px">Toca para ver el perfil</div>`}
+        </div>
+      </div>`;
+    }).join('');
+    const actionHtml=phase==='pick'&&selected?`<button class="btn btn-primary" id="confirm-btn">Confirmar elección →</button>`:(phase==='pick'?`<div style="font-size:12px;color:var(--text-3);text-align:center">Expande cada tarjeta y elige un agente</div>`:'');
     app.innerHTML=retoShellHtml(r,`
       <div class="card"><div class="card-eye">Reto · Día 1</div><div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
+        ${r.subIntro?`<div style="font-size:13px;color:var(--text-3);margin-bottom:16px">${r.subIntro}</div>`:''}
         <div class="agents-grid">${cardsHtml}</div>
         <div style="margin-top:16px">${actionHtml}</div>
       </div>`);
     initRetoClose(r);
     if(phase==='pick'){
-      document.querySelectorAll('.agent-card').forEach(btn=>{
-        btn.addEventListener('click',()=>{
-          selected=btn.dataset.aid;
-          document.querySelectorAll('.agent-card').forEach(b=>b.classList.remove('selected'));
-          btn.classList.add('selected');
-          const cb=$('confirm-btn');if(cb){cb.disabled=false;cb.style.opacity='1';}
+      document.querySelectorAll('[data-expand]').forEach(el=>{
+        el.addEventListener('click',(e)=>{
+          if(e.target.closest('[data-select]'))return;
+          const aid=el.dataset.expand;
+          expanded=expanded===aid?null:aid;
+          render();
+        });
+      });
+      document.querySelectorAll('[data-select]').forEach(btn=>{
+        btn.addEventListener('click',(e)=>{
+          e.stopPropagation();
+          selected=btn.dataset.select;
+          render();
         });
       });
       $('confirm-btn')?.addEventListener('click',async()=>{
@@ -999,8 +1024,8 @@ function playBudget(r){
         <div class="budget-remaining"><span class="budget-rem-lbl">Presupuesto restante</span><span class="budget-rem-val" style="color:${remaining<0?'var(--error)':remaining===0?'var(--success)':'var(--silver-2)'}">${remaining}€</span></div>
         <div class="budget-channels">${channelsHtml}</div>
         <div style="margin-top:16px">
-          <button class="btn btn-primary" id="submit-budget" ${remaining!==0||spent===0?'disabled':''}>Confirmar reparto →</button>
-          <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:8px">Tienes que repartir exactamente los 1.000€</div>
+          <button class="btn btn-primary" id="submit-budget">Confirmar reparto →</button>
+          <div id="budget-msg" style="font-size:12px;color:${remaining===0?'var(--success)':remaining<0?'var(--error)':'var(--text-3)'};text-align:center;margin-top:8px">${remaining===0?'✓ Presupuesto repartido. Pulsa confirmar.':'Reparte exactamente los '+r.totalBudget+'€ — te quedan '+remaining+'€'}</div>
         </div>
       </div>`);
     initRetoClose(r);
@@ -1012,7 +1037,12 @@ function playBudget(r){
         render();
       });
     });
-    $('submit-budget')?.addEventListener('click',showDay1);
+    $('submit-budget')?.addEventListener('click',()=>{
+      const s=Object.values(alloc).reduce((a,b)=>a+b,0);
+      if(s===0){const m=$('budget-msg');if(m){m.style.color='var(--error)';m.textContent='Mueve al menos un slider para repartir el presupuesto.';}return;}
+      if(s!==r.totalBudget){const m=$('budget-msg');if(m){m.style.color='var(--error)';m.textContent='Reparte exactamente los '+r.totalBudget+'€ — te quedan '+(r.totalBudget-s)+'€';}return;}
+      showDay1();
+    });
   }
 
   function showDay1(){
