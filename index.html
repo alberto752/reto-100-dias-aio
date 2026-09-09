@@ -533,13 +533,10 @@ function todayStr(){
 function retoStatus(r){
   if(S.userData&&S.userData.completedRetos&&S.userData.completedRetos[r.id]) return 'done';
   if(todayStr()<r.date) return 'locked';
-  const my=myRetos();
-  const idx=my.indexOf(r);
-  if(idx>0&&my[idx-1].date===r.date&&!(S.userData&&S.userData.completedRetos&&S.userData.completedRetos[my[idx-1].id])) return 'locked';
   return 'available';
 }
 
-function myRetos(){return RETOS.filter(r=>r.profile===S.userType);}
+function myRetos(){return RETOS;}
 function totalXP(){return (S.userData&&S.userData.xp)||0;}
 function msUntil(ds){return new Date(ds+'T09:00:00').getTime()-Date.now();}
 function formatMs(ms){if(ms<=0)return{d:0,h:0,m:0,s:0};const t=Math.floor(ms/1000);return{d:Math.floor(t/86400),h:Math.floor((t%86400)/3600),m:Math.floor((t%3600)/60),s:t%60};}
