@@ -492,27 +492,33 @@ const RETOS = [
   revealTeaser:'Hay un cuello de botella claro aquí. El 23 de septiembre verás el caso completo y la solución que usaron para triplicar el resultado.',
 },
 {
-  id:'r5', profile:'novice', date:'2026-09-22', dayLabel:'Martes 22 sep',
-  title:'La operación imposible', emoji:'🗺️', type:'graph',
-  xpBase:50, xpBonus:50,
-  intro:'Tienes una propiedad de 300.000€ en Madrid. El propietario quiere vender. Tú acabas de empezar.',
-  nodes:[
-    {id:'portal',    label:'Portal inmobiliario', icon:'🏘️', connects:{madrid:'slow',tenerife:'slow'}},
-    {id:'contacto',  label:'Contacto personal',   icon:'👤', connects:{}},
-    {id:'inversor',  label:'Inversor',             icon:'💼', connects:{tenerife:'partial'}},
-    {id:'agente_gc', label:'Agente Gran Canaria',  icon:'🏝️', connects:{}},
-    {id:'agente_mad',label:'Agente Madrid',        icon:'🤝', connects:{madrid:'fast'}},
-    {id:'agencia',   label:'Agencia tradicional',  icon:'🏢', connects:{}},
-  ],
-  destinations:[
-    {id:'madrid',  label:'Comprador Madrid',   icon:'🏠'},
-    {id:'tenerife',label:'Comprador Tenerife', icon:'🌊'},
-  ],
-  correctNode:'agente_mad',
-  correctDest:'madrid',
-  revealTeaser:'¿Por qué un agente podría necesitar menos contactos de los que imagina para acceder a una operación? La respuesta, el 23.',
-},
-{
+    id:'r5', profile:'novice', date:'2026-09-22', dayLabel:'Martes 22 sep',
+    title:'La operación imposible', emoji:'🗺️', type:'graph',
+    xpBase:50, xpBonus:50,
+    intro:'Tienes una propiedad de 300.000€ en Chamberí, Madrid. Pareja joven, primera vivienda. El propietario quiere vender. Tú acabas de empezar.',
+    nodes:[
+      {id:'portal',   label:'Portal inmobiliario', icon:'🏘️', pista:'Alcance amplio',
+       investiga:'Llega a mucha gente, pero sin filtrar — cierre lento.', connects:{a:'lenta', b:'lenta'}},
+      {id:'contacto', label:'Contacto personal',   icon:'👤', pista:'Alguien de tu círculo',
+       investiga:'Aún no tienes contactos reales — callejón sin salida.', connects:{}},
+      {id:'diego',    label:'Diego',               icon:'🧔', pista:'Cartera activa en tu ciudad',
+       investiga:'Trabaja en Madrid. Busca pisos para reformar y alquilar por habitaciones — no encaja.', connects:{}},
+      {id:'marta',    label:'Marta',               icon:'👩', pista:'Cartera a distancia',
+       investiga:'Trabaja en Valencia. Parejas jóvenes que se mudan a Madrid por trabajo — encaja exacto.', connects:{a:'rapida'}},
+      {id:'inversor', label:'Inversor privado',    icon:'💼', pista:'Busca comprar directo',
+       investiga:'Alquiler turístico — cierra, pero reparto de valor distinto.', connects:{b:'parcial'}},
+      {id:'agencia',  label:'Agencia tradicional', icon:'🏢', pista:'Colaboración clásica',
+       investiga:'No colabora con agentes online — callejón sin salida.', connects:{}},
+    ],
+    destinations:[
+      {id:'a', label:'Comprador A', icon:'🏠', investiga:'Pareja joven, primera vivienda, presupuesto ajustado, se ha mudado por trabajo.'},
+      {id:'b', label:'Comprador B', icon:'🏗️', investiga:'Inversor: busca piso para reformar y alquilar por habitaciones.'},
+    ],
+    correctNode:'marta', correctDest:'a',
+    cierre:'¿Por qué un agente a 350 km puede tener más valor que uno de tu misma calle? La respuesta, el 23.',
+    revealTeaser:'¿Por qué un agente a 350 km puede tener más valor que uno de tu misma calle? La respuesta, el 23.',
+  },
+  {
   id:'r6', profile:'agent', date:'2026-09-22', dayLabel:'Martes 22 sep',
   title:'El farol', emoji:'🃏', type:'bluff',
   xpBase:50, xpBonus:50,
@@ -1355,80 +1361,121 @@ function playFunnel(r){
 }
 
 // ─── R5: La operación imposible ────────────────────────────────────
+/* v2. La v1 se resolvia emparejando nombres de ciudad ("Agente Madrid" + piso
+   en Madrid), asi que se acertaba sin entender nada de la RIC. Ahora los agentes
+   se llaman Diego y Marta, los compradores son A y B, y hay que investigar cada
+   nodo con la lupa para saber que cartera maneja de verdad.
+
+   Investigar es gratis e ilimitado. La conexion final es de una sola vez: en
+   cuanto se elige comprador se dispara el resultado, sin reintentos. */
 function playGraph(r){
-  let phase='node',pickedNode=null,pickedDest=null;
+  let paso='mapa', nodo=null;
+  const investigados=new Set();
+  const nodoDe=id=>r.nodes.find(n=>n.id===id);
 
-  function renderPhaseNode(){
-    const nodesHtml=r.nodes.map(n=>`
-      <button class="path-opt" data-nid="${n.id}">
-        <span class="path-letter" style="font-size:16px">${n.icon}</span>
-        <span>${n.label}</span>
-      </button>`).join('');
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Reto · Día 3 · Paso 1 de 2</div>
-        <div class="card-title">${r.title}</div>
-        <div class="card-desc">${r.intro}</div>
-        <div style="font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:12px">¿A través de quién llegas al comprador?</div>
-        <div class="path-opts">${nodesHtml}</div>
-      </div>`);
-    initRetoClose(r);
-    document.querySelectorAll('.path-opt').forEach(btn=>{
-      btn.addEventListener('click',()=>{pickedNode=btn.dataset.nid;phase='dest';renderPhaseDest();});
-    });
-  }
-
-  function renderPhaseDest(){
-    const node=r.nodes.find(n=>n.id===pickedNode);
-    const destsHtml=r.destinations.map(d=>`
-      <button class="path-opt" data-did="${d.id}">
-        <span class="path-letter" style="font-size:16px">${d.icon}</span>
-        <span>${d.label}</span>
-      </button>`).join('');
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Reto · Día 3 · Paso 2 de 2</div>
-        <div style="font-size:12px;color:var(--text-3);margin-bottom:6px">Vía: ${node?node.icon+' '+node.label:''}</div>
-        <div class="card-title">¿A qué comprador apuntas?</div>
-        <div class="path-opts" style="margin-top:16px">${destsHtml}</div>
-        <button class="btn btn-outline" id="back-node" style="margin-top:10px;width:100%">← Volver a elegir canal</button>
-      </div>`);
-    initRetoClose(r);
-    $('back-node')?.addEventListener('click',()=>{phase='node';pickedNode=null;renderPhaseNode();});
-    document.querySelectorAll('.path-opt').forEach(btn=>{
-      btn.addEventListener('click',()=>{pickedDest=btn.dataset.did;showGraphResult();});
-    });
-  }
-
-  function showGraphResult(){
-    const node=r.nodes.find(n=>n.id===pickedNode);
-    const dest=r.destinations.find(d=>d.id===pickedDest);
-    const connType=node&&node.connects&&node.connects[pickedDest];
-    const optimal=pickedNode===r.correctNode&&pickedDest===r.correctDest;
-    const possible=!!connType;
-    const gotBonus=optimal;
-    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
-    let verdict,color,hint;
-    if(optimal){verdict='Camino óptimo';color='var(--gold)';hint='Conexión directa y rápida al comprador correcto.';}
-    else if(connType==='slow'){verdict='Camino lento';color='var(--text-2)';hint='Puedes llegar, pero tardarás mucho más.';}
-    else if(connType==='partial'){verdict='Acceso parcial';color='var(--text-2)';hint='Llegas pero con fricción importante.';}
-    else{verdict='Callejón sin salida';color='var(--error)';hint='Este canal no conecta con ese comprador.';}
-    const correctNode=r.nodes.find(n=>n.id===r.correctNode);
-    const correctDest=r.destinations.find(d=>d.id===r.correctDest);
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Resultado</div>
-        <div class="card-title">${optimal?'Camino óptimo encontrado.':possible?'Llegas, pero no es lo mejor.':'Sin salida — a intentarlo de otra forma.'}</div>
-        <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:16px">
-          <span style="font-size:24px">${node?node.icon:''}</span>
-          <div style="font-size:16px;color:var(--text-3)">→</div>
-          <span style="font-size:24px">${dest?dest.icon:''}</span>
-          <div style="flex:1"><div style="font-size:13px;font-weight:700;color:${color}">${verdict}</div><div style="font-size:12px;color:var(--text-3);margin-top:2px">${hint}</div></div>
+  function fichaHtml(x,{tipo}){
+    const visto=investigados.has(tipo+':'+x.id);
+    return `<div class="agent-card" data-pick="${x.id}" style="cursor:pointer;text-align:left">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
+        <span style="font-size:22px">${x.icon}</span>
+        <div style="flex:1">
+          <div class="agent-name" style="font-size:13px">${x.label}</div>
+          ${x.pista?`<div class="agent-handle" style="font-size:10px">${x.pista}</div>`:''}
         </div>
-        ${!optimal?`<div style="font-size:13px;color:var(--text-3);margin-bottom:16px">El camino óptimo era: <strong style="color:var(--gold)">${correctNode?correctNode.icon+' '+correctNode.label:''} → ${correctDest?correctDest.icon+' '+correctDest.label:''}</strong></div>`:''}
-        <button class="btn btn-primary" id="finish-btn">Ver mis XP →</button>
-      </div>`,xp);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+      </div>
+      ${visto
+        ? `<div style="font-size:11px;color:var(--text-2);line-height:1.5;padding:8px 10px;background:var(--surface-3);border-radius:8px">${x.investiga}</div>`
+        : `<button class="btn btn-inv" data-inv="${tipo}:${x.id}" style="width:100%;font-size:11px;padding:7px">🔍 Investigar</button>`}
+    </div>`;
   }
-  renderPhaseNode();
+
+  function conectarLupas(){
+    document.querySelectorAll('[data-inv]').forEach(function(b){
+      b.addEventListener('click',function(e){
+        e.stopPropagation();
+        investigados.add(b.dataset.inv);
+        render();
+      });
+    });
+  }
+
+  function render(){
+    if(paso==='mapa'){
+      app.innerHTML=retoShellHtml(r,`
+        <div class="card">
+          <div class="card-eye">Reto · Día 3</div>
+          <div class="card-desc">${r.intro}</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:18px 0 20px;padding:14px;background:var(--surface-2);border-radius:12px">
+            <span style="font-size:20px">🏠</span>
+            <span style="font-size:12px;color:var(--text-2)">Propietario</span>
+            <span style="color:var(--text-3)">──</span>
+            <span style="font-size:12px;font-weight:700">Tú</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Investiga lo que quieras. Cuando toques un nodo, conectas desde ti.</div>
+          <div class="agents-grid">${r.nodes.map(n=>fichaHtml(n,{tipo:'n'})).join('')}</div>
+        </div>`);
+      initRetoClose(r);
+      conectarLupas();
+      document.querySelectorAll('[data-pick]').forEach(function(el){
+        el.addEventListener('click',function(e){
+          if(e.target.closest('[data-inv]'))return;
+          nodo=el.dataset.pick; paso='comprador'; render();
+        });
+      });
+      return;
+    }
+
+    if(paso==='comprador'){
+      const n=nodoDe(nodo);
+      app.innerHTML=retoShellHtml(r,`
+        <div class="card">
+          <div class="card-eye">El comprador</div>
+          <div class="card-title" style="font-size:18px">Vía: ${n.label}. ¿A qué comprador apuntas?</div>
+          <div class="agents-grid" style="margin-top:14px">${r.destinations.map(d=>fichaHtml(d,{tipo:'d'})).join('')}</div>
+          <div style="margin-top:16px;font-size:12px;color:var(--text-3);text-align:center;line-height:1.5">Investiga todo lo que necesites. Cuando conectes, esa es tu jugada — no hay vuelta atrás.</div>
+        </div>`);
+      initRetoClose(r);
+      conectarLupas();
+      document.querySelectorAll('[data-pick]').forEach(function(el){
+        el.addEventListener('click',function(e){
+          if(e.target.closest('[data-inv]'))return;
+          resultado(el.dataset.pick);
+        });
+      });
+      return;
+    }
+  }
+
+  function resultado(dest){
+    const n=nodoDe(nodo);
+    const d=r.destinations.find(x=>x.id===dest);
+    const conecta=!!(n.connects&&n.connects[dest]);
+    const optima=nodo===r.correctNode&&dest===r.correctDest;
+    /* El XP de completar se da siempre, tambien en callejon sin salida: el
+       documento fija "50 XP por completarlo (siempre, acierte o no)" y un 0 XP
+       delataria el fallo igual que lo haria un texto. */
+    const bonus=optima?(r.xpBonus||0):0;
+    const xp=(r.xpBase||0)+bonus;
+    /* Se distingue si conecta o no, que es un hecho mecanico del mapa, pero ya
+       no se dice si la ruta era la rapida o la lenta: eso es un juicio. */
+    const cuerpo=conecta
+      ? `<div style="font-family:var(--font-d);font-size:21px;font-weight:800;margin-bottom:12px">¡Conexión lograda!</div>
+         <div style="font-size:15px;color:var(--text-1);margin-bottom:16px">${n.icon} ${n.label} → ${d.icon} ${d.label}</div>
+         <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:22px">No sabemos todavía si era la ruta más rápida que existía. El 23 de septiembre lo vemos juntos.</div>`
+      : `<div style="font-family:var(--font-d);font-size:21px;font-weight:800;margin-bottom:14px">Este camino no lleva a ningún comprador.</div>
+         <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:22px">Tu jugada ha terminado — el 23 de septiembre vemos juntos cuál era la ruta que sí funcionaba.</div>`;
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card" style="text-align:center">
+        <div style="font-size:44px;margin:8px 0 14px">${conecta?'🔗':'🚧'}</div>
+        ${cuerpo}
+        <div style="padding:16px;border-radius:12px;background:var(--surface-3);font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:22px">${r.cierre}</div>
+        <button class="btn btn-primary" id="finish-btn" style="width:100%">Continuar →</button>
+      </div>`,xp);
+    initRetoClose(r);
+    $('finish-btn').addEventListener('click',function(){completeReto(r,xp,bonus,optima);});
+  }
+
+  render();
 }
 
 // ─── R6: El farol ──────────────────────────────────────────────────
