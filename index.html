@@ -389,7 +389,7 @@ const RETOS = [
   id:'r2', profile:'agent', date:'2026-09-16', dayLabel:'Miércoles 16 sep',
   title:'El agente invisible', emoji:'🕵️', type:'agent-clues',
   xpBase:50, xpBonus:50,
-  intro:'Uno de estos 6 agentes tiene los mejores números del grupo. Pero hay uno que, por mucho currículum que tenga, un propietario nunca lo encontraría online. Encuéntralo.',
+  intro:'Te presentamos 6 agentes inmobiliarios. Todos parecen buenos. Uno de ellos es invisible: por muchos leads que le lleguen, casi ninguno es un propietario real. Encuéntralo.',
   agents:[
     {id:'1', emoji:'🧔',    name:'Diego Morales',  handle:'@diegomorales'},
     {id:'2', emoji:'👩‍🦱',   name:'Sofía Ramos',    handle:'@sofiaramos.homes'},
@@ -398,15 +398,16 @@ const RETOS = [
     {id:'5', emoji:'👨‍🦳',   name:'Miguel Ibáñez',  handle:'@miguelibañez.agente'},
     {id:'6', emoji:'👩‍🦳',   name:'Carmen López',   handle:'@carmenlopez.inmobiliaria'},
   ],
-  clues:[
-    {label:'Años de experiencia',                       values:{'1':'12 años','2':'4 años','3':'18 años','4':'7 años','5':'22 años','6':'9 años'}},
-    {label:'Seguidores en redes',                       values:{'1':'4.200','2':'890','3':'11.500','4':'2.100','5':'680','6':'3.400'}},
-    {label:'Propiedades publicadas activas',             values:{'1':'34','2':'12','3':'67','4':'28','5':'41','6':'19'}},
-    {label:'Reseñas Google',                            values:{'1':'4,6★ (23)','2':'4,9★ (8)','3':'4,7★ (51)','4':'4,8★ (17)','5':'4,5★ (38)','6':'5,0★ (12)'}},
-    {label:'Aparece al buscar "vender casa" en Google', values:{'1':'✅ Sí','2':'✅ Sí','3':'❌ No','4':'✅ Sí','5':'✅ Sí','6':'✅ Sí'}},
-  ],
-  correctAgent:'3',
-  revealTeaser:'Este agente existe. El 23 de septiembre verás por qué el currículum no es suficiente sin el sistema correcto.',
+  datos:{
+      '1':{anios:'12 años', seguidores:'4.200',  anuncios:'✅ Sí', leads:'40', intencion:'15%'},
+      '2':{anios:'4 años',  seguidores:'890',    anuncios:'✅ Sí', leads:'12', intencion:'60%'},
+      '3':{anios:'18 años', seguidores:'11.500', anuncios:'✅ Sí', leads:'90', intencion:'8%'},
+      '4':{anios:'7 años',  seguidores:'2.100',  anuncios:'❌ No', leads:'—',  intencion:'—'},
+      '5':{anios:'22 años', seguidores:'680',    anuncios:'❌ No', leads:'—',  intencion:'—'},
+      '6':{anios:'9 años',  seguidores:'3.400',  anuncios:'✅ Sí', leads:'25', intencion:'55%'},
+    },
+    correctAgent:'3',
+  revealTeaser:'¿Por qué le llegan tantos leads y tan pocos sirven? Lo desmontamos el 23.',
 },
 {
   id:'r3', profile:'novice', date:'2026-09-19', dayLabel:'Sábado 19 sep',
@@ -986,88 +987,137 @@ function playAgentPick(r){
 }
 
 // ─── R2: El agente invisible ───────────────────────────────────────
-function playAgentClues(r){
-  let clueIdx=0,eliminated=new Set(),chosen=null,phase='clues';
+/* Quien es Quien de verdad: las pistas caen de una en una y es el usuario quien
+   decide a quien descarta. Antes se revelaban los 5 datos de los 6 agentes a la
+   vez y el boton "Eliminar agente" descartaba a uno arbitrario, asi que no habia
+   ni deduccion ni eliminacion.
 
-  function buildTableHtml(){
-    const revealed=r.clues.slice(0,clueIdx+1);
-    const agentCols=r.agents.map(a=>`<th style="font-size:11px;text-align:center;padding:6px 4px;color:${eliminated.has(a.id)?'var(--text-3)':'var(--text-1)'}">${a.emoji}<br><span style="font-size:10px">${a.name.split(' ')[0]}</span>${eliminated.has(a.id)?'<br><span style="color:var(--error);font-size:9px">❌</span>':''}</th>`).join('');
-    const rows=revealed.map(c=>{
-      const cells=r.agents.map(a=>`<td style="font-size:12px;text-align:center;padding:5px 4px;color:${eliminated.has(a.id)?'var(--text-3)':'var(--text-2)'}">${c.values[a.id]||'—'}</td>`).join('');
-      return `<tr><td style="font-size:11px;font-weight:600;padding:5px 6px;color:var(--text-3);white-space:nowrap">${c.label}</td>${cells}</tr>`;
+   El % de intencion real de venta es la pista que da la vuelta al reto y solo
+   se ensena en el paso final: antes de eso, Andres parece el mejor de todos. */
+function playAgentClues(r){
+  const PASOS=[
+    {id:'p1', campo:'anios',      etq:'Años de experiencia',                          elimina:2},
+    {id:'p2', campo:'seguidores', etq:'Seguidores en redes',                          elimina:1,
+     micro:'¿Tener seguidores significa que le llegan propietarios de verdad? Sigue mirando.'},
+    {id:'p3', campo:'anuncios',   etq:'¿Tiene anuncios activos ahora mismo en Meta?', elimina:0},
+    {id:'p4', campo:'leads',      etq:'Leads que le llegan al mes',                   elimina:0},
+    {id:'final', campo:'intencion', etq:'De esos leads, cuántos son propietarios que quieren vender', elimina:0},
+  ];
+  let paso=-1;                 // -1 = intro
+  const eliminados=new Set();
+  let elegido=null;
+
+  const vivos=()=>r.agents.filter(a=>!eliminados.has(a.id));
+  const dato=(a,campo)=>((r.datos&&r.datos[a.id])||{})[campo]||'—';
+  const pasoActual=()=>PASOS[paso];
+  const camposVisibles=()=>PASOS.slice(0,paso+1);
+
+  function fichaHtml(a,{clicable}){
+    const fuera=eliminados.has(a.id);
+    const filas=camposVisibles().map(function(p){
+      return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-top:5px">
+        <span style="color:var(--text-3)">${p.etq}</span>
+        <span style="font-weight:700;color:${fuera?'var(--text-3)':'var(--text-1)'};white-space:nowrap">${dato(a,p.campo)}</span>
+      </div>`;
     }).join('');
-    return `<div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="font-size:11px;padding:6px;text-align:left;color:var(--text-3)">Dato</th>${agentCols}</tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="agent-card${fuera?' eliminated':''}${elegido===a.id?' selected':''}"
+      ${clicable?`data-aid="${a.id}"`:''}
+      style="opacity:${fuera?'0.35':'1'};cursor:${clicable?'pointer':'default'};position:relative">
+      ${fuera?`<div style="position:absolute;top:8px;right:10px;font-size:16px">✕</div>`:''}
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="agent-emoji" style="font-size:24px">${a.emoji}</span>
+        <div><div class="agent-name" style="font-size:13px">${a.name}</div><div class="agent-handle" style="font-size:10px">${a.handle}</div></div>
+      </div>
+      ${filas}
+    </div>`;
   }
 
   function render(){
-    const canNextClue=clueIdx<r.clues.length-1;
-    const actionHtml=phase==='clues'
-      ?`<div style="display:flex;gap:8px;flex-wrap:wrap">
-          ${canNextClue?`<button class="btn btn-outline" id="next-clue-btn">+ Revelar dato</button>`:''}
-          ${clueIdx>0?`<button class="btn btn-outline" id="elim-mode-btn">Eliminar agente</button>`:''}
-          <button class="btn btn-primary" id="pick-btn">¿Quién es el invisible? →</button>
-        </div>`
-      :`<button class="btn btn-primary" id="confirm-pick-btn" ${chosen?'':'disabled'}>Confirmar →</button>`;
-
-    const agentsHtml=phase==='pick'?r.agents.map(a=>`
-      <button class="agent-card${eliminated.has(a.id)?' eliminated':''}${chosen===a.id?' selected':''}" data-aid="${a.id}" ${eliminated.has(a.id)?'disabled':''}>
-        <span class="agent-emoji">${a.emoji}</span>
-        <div class="agent-name">${a.name}</div>
-        <div class="agent-handle">${a.handle}</div>
-      </button>`).join(''):'';
-
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Dato ${clueIdx+1} de ${r.clues.length} revelado</div>
-        <div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
-        ${buildTableHtml()}
-        ${phase==='pick'?`<div style="margin-bottom:12px;font-size:12px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Elige al agente invisible</div><div class="agents-grid">${agentsHtml}</div>`:''}
-        <div style="margin-top:16px">${actionHtml}</div>
-      </div>`);
-    initRetoClose(r);
-    $('next-clue-btn')?.addEventListener('click',()=>{clueIdx++;render();});
-    $('pick-btn')?.addEventListener('click',()=>{phase='pick';render();});
-    $('elim-mode-btn')?.addEventListener('click',()=>{
-      const active=r.agents.filter(a=>!eliminated.has(a.id));
-      if(active.length<=1)return;
-      const target=active.find(a=>!eliminated.has(a.id)&&a.id!==chosen);
-      if(target){eliminated.add(target.id);render();}
-    });
-    if(phase==='pick'){
-      document.querySelectorAll('.agent-card:not([disabled])').forEach(btn=>{
-        btn.addEventListener('click',()=>{
-          chosen=btn.dataset.aid;
-          document.querySelectorAll('.agent-card').forEach(b=>b.classList.remove('selected'));
-          btn.classList.add('selected');
-          const cb=$('confirm-pick-btn');if(cb)cb.disabled=false;
-        });
-      });
-      $('confirm-pick-btn')?.addEventListener('click',showClueReveal);
+    if(paso<0){
+      app.innerHTML=retoShellHtml(r,`
+        <div class="card">
+          <div class="card-eye">Reto · Día 1</div>
+          <div class="card-title">${r.title}</div>
+          <div class="card-desc">${r.intro}</div>
+          <div class="agents-grid">${r.agents.map(a=>fichaHtml(a,{clicable:false})).join('')}</div>
+          <div style="margin-top:18px"><button class="btn btn-primary" id="next-clue-btn" style="width:100%">Ver pista 1 →</button></div>
+        </div>`);
+      initRetoClose(r);
+      $('next-clue-btn').addEventListener('click',function(){paso=0;render();});
+      return;
     }
-  }
 
-  function showClueReveal(){
-    const gotBonus=chosen===r.correctAgent;
-    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
-    const correct=r.agents.find(a=>a.id===r.correctAgent);
-    const allTableRows=r.clues.map(c=>{
-      const cells=r.agents.map(a=>`<td style="font-size:12px;text-align:center;padding:5px 4px;${a.id===r.correctAgent?'font-weight:700;color:var(--gold)':''}">${c.values[a.id]||'—'}</td>`).join('');
-      return `<tr><td style="font-size:11px;font-weight:600;padding:5px 6px;color:var(--text-3);white-space:nowrap">${c.label}</td>${cells}</tr>`;
-    }).join('');
-    const agentCols=r.agents.map(a=>`<th style="font-size:11px;text-align:center;padding:6px 4px;${a.id===r.correctAgent?'color:var(--gold)':''}">${a.emoji}<br><span style="font-size:10px">${a.name.split(' ')[0]}</span>${a.id===r.correctAgent?' ✓':a.id===chosen&&!gotBonus?' ✗':''}</th>`).join('');
+    const p=pasoActual();
+
+    if(p.id==='final'){
+      app.innerHTML=retoShellHtml(r,`
+        <div class="card">
+          <div class="card-eye">Pista final</div>
+          <div class="card-title" style="font-size:19px;line-height:1.3">De todos esos leads que le llegan cada mes, mira cuántos son en realidad propietarios que quieren vender.</div>
+          <div class="agents-grid" style="margin-top:16px">${vivos().map(a=>fichaHtml(a,{clicable:true})).join('')}</div>
+          <div style="margin:20px 0 12px;font-size:12px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">¿Quién es el agente invisible?</div>
+          <button class="btn btn-primary" id="confirm-pick-btn" style="width:100%" ${elegido?'':'disabled'}>Confirmar →</button>
+        </div>`);
+      initRetoClose(r);
+      document.querySelectorAll('[data-aid]').forEach(function(el){
+        el.addEventListener('click',function(){elegido=el.dataset.aid;render();});
+      });
+      $('confirm-pick-btn').addEventListener('click',resultado);
+      return;
+    }
+
+    const yaFuera=eliminados.size;
+    const objetivo=PASOS.slice(0,paso+1).reduce(function(s,x){return s+x.elimina;},0);
+    const faltan=objetivo-yaFuera;
+    const puedeSeguir=faltan<=0;
+    const pide=p.elimina>0;
+
     app.innerHTML=retoShellHtml(r,`
       <div class="card">
-        <div style="text-align:center;padding:20px 0 24px;border-bottom:1px solid var(--border-2);margin-bottom:20px">
-          <div style="font-size:48px;margin-bottom:10px">${gotBonus?'✅':'❌'}</div>
-          <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px">${gotBonus?'¡Correcto!':'Incorrecto'}</div>
-          <div style="font-size:15px;color:var(--text-2)">El agente invisible era <strong style="color:var(--white)">${correct?correct.emoji+' '+correct.name:''}</strong></div>
+        <div class="card-eye">Pista ${paso+1} de 5 · ${p.etq}</div>
+        <div class="card-title" style="font-size:18px">${r.title}</div>
+        ${p.micro?`<div class="card-desc" style="font-style:italic">${p.micro}</div>`:''}
+        ${pide?`<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Descarta ${p.elimina===1?'a 1 agente':'a '+p.elimina+' agentes'}: toca a quien creas que no puede ser.</div>`
+              :`<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Quedan ${vivos().length}. Mira el dato antes de seguir.</div>`}
+        <div class="agents-grid">${(pide?r.agents:vivos()).map(a=>fichaHtml(a,{clicable:pide})).join('')}</div>
+        <div style="margin-top:18px">
+          ${pide&&!puedeSeguir?`<div style="text-align:center;font-size:12px;color:var(--text-3);margin-bottom:10px">Te ${faltan===1?'queda 1 por descartar':'quedan '+faltan+' por descartar'}</div>`:''}
+          <button class="btn btn-primary" id="next-clue-btn" style="width:100%" ${puedeSeguir?'':'disabled'}>${paso===PASOS.length-2?'Ver pista final →':'Ver pista '+(paso+2)+' →'}</button>
         </div>
-        <div class="card-eye" style="margin-bottom:12px">Todos los datos revelados</div>
-        <div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="font-size:11px;padding:6px;text-align:left;color:var(--text-3)">Dato</th>${agentCols}</tr></thead><tbody>${allTableRows}</tbody></table></div>
-        <div style="margin-top:16px"><button class="btn btn-primary" id="finish-btn">Ver mis XP →</button></div>
-      </div>`,xp);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+      </div>`);
+    initRetoClose(r);
+    if(pide){
+      document.querySelectorAll('[data-aid]').forEach(function(el){
+        el.addEventListener('click',function(){
+          const id=el.dataset.aid;
+          if(eliminados.has(id)) eliminados.delete(id);
+          else if(eliminados.size<objetivo) eliminados.add(id);
+          render();
+        });
+      });
+    }
+    $('next-clue-btn').addEventListener('click',function(){if(paso<PASOS.length-1){paso++;render();}});
   }
+
+  function resultado(){
+    const a=r.agents.find(x=>x.id===elegido);
+    const gotBonus=elegido===r.correctAgent;
+    const bonus=gotBonus?(r.xpBonus||0):0;
+    const xp=(r.xpBase||0)+bonus;
+    /* Texto generico a proposito: no debe narrar el perfil del agente correcto,
+       porque eso delataria la respuesta a quien haya elegido a otro. */
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card" style="text-align:center">
+        <div style="font-size:44px;margin:8px 0 14px">${a.emoji}</div>
+        <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:12px">¡Has elegido a ${a.name}!</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:22px">¿Habrá sido la opción correcta? Ya queda menos para descubrir el porqué de cada reto que hemos hecho durante esta semana.</div>
+        <div style="padding:16px;border-radius:12px;background:var(--surface-3);font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:22px">¿Por qué le llegan tantos leads y tan pocos sirven? Lo desmontamos el 23.</div>
+        <button class="btn btn-primary" id="finish-btn" style="width:100%">Continuar →</button>
+      </div>`,xp);
+    initRetoClose(r);
+    $('finish-btn').addEventListener('click',function(){completeReto(r,xp,bonus,gotBonus);});
+  }
+
   render();
 }
 
