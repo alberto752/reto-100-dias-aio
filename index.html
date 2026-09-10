@@ -435,7 +435,7 @@ const RETOS = [
   id:'r4', profile:'agent', date:'2026-09-19', dayLabel:'Sábado 19 sep',
   title:'El embudo roto', emoji:'🔍', type:'funnel',
   xpBase:50, xpBonus:50,
-  intro:'Este es el embudo de un agente inmobiliario online. Algo está fallando. Investiga y encuentra dónde está la fuga.',
+  intro:'Algo en nuestro embudo está fallando. No conseguimos realizar ninguna llamada. Busca el culpable. ¿Dónde está la fuga?',
   stages:[
     {label:'Visualizaciones',    value:'10.000', icon:'👁️'},
     {label:'Clics',              value:'840',    icon:'👆'},
@@ -445,11 +445,11 @@ const RETOS = [
     {label:'Llamadas realizadas',value:'0',     icon:'📞'},
   ],
   suspects:[
-    {id:'anuncio',    label:'Anuncio',         icon:'📢', clue:'CTR del anuncio: 8,4% — por encima de la media del sector.'},
-    {id:'landing',    label:'Landing',          icon:'🌐', clue:'Conversión landing: 30,4% — por encima de la media del sector.'},
-    {id:'formulario', label:'Formulario',       icon:'📋', clue:'64 formularios completados de 210 visitas. Tasa normal para el sector.'},
-    {id:'seguimiento',label:'Seguimiento',      icon:'📞', clue:'11 personas respondieron al formulario. El setter tardó una media de 6 días en llamar. Resultado: 0 llamadas completadas.'},
-    {id:'mensaje',    label:'Oferta / Mensaje', icon:'💬', clue:'Los mensajes de seguimiento nunca llegaron a enviarse.'},
+    {id:'anuncio',    label:'Anuncio',         icon:'📢', clue:'El anuncio lleva unos días corriendo con la foto de una casa luminosa y un texto que habla de vender rápido y sin complicaciones. La gente lo ve pasar por el feed, y de vez en cuando alguien se detiene el tiempo justo para tocarlo y seguir hacia la web.'},
+    {id:'landing',    label:'Landing',          icon:'🌐', clue:'En la landing hay un formulario corto arriba del todo, con una promesa clara sobre cuánto puede valer la vivienda. Bastante gente llega hasta el final de la página antes de decidir si sigue adelante o se va sin más.'},
+    {id:'formulario', label:'Formulario',       icon:'📋', clue:'El formulario pide nombre, teléfono, y si el interés es vender ya o más adelante. La mayoría de quienes lo empiezan a rellenar acaba terminándolo, sin quedarse a medias.'},
+    {id:'seguimiento',label:'Seguimiento',      icon:'📞', clue:'De las personas que contestaron al primer mensaje, casi todas lo hicieron el mismo día del anuncio. El primer contacto directo por parte de alguien del equipo llegó en aproximadamente una semana.'},
+    {id:'mensaje',    label:'Oferta / Mensaje', icon:'💬', clue:'El mensaje automático de bienvenida se dispara solo, en cuanto alguien deja sus datos. La plantilla de seguimiento personalizado, en cambio, sigue guardada en el CRM, tal cual se dejó preparada.'},
   ],
   brokenStage:'seguimiento',
   revealTeaser:'Hay un cuello de botella claro aquí. El 23 de septiembre verás el caso completo y la solución que usaron para triplicar el resultado.',
@@ -1273,6 +1273,7 @@ function playFunnel(r){
     app.innerHTML=retoShellHtml(r,`
       <div class="card" style="padding:20px 18px"><div class="card-eye">Reto · Día 2</div>
         <div class="card-title">${r.title}</div>
+        <div class="card-desc">${r.intro}</div>
         <div style="margin-bottom:12px">${buildCascadeHtml()}</div>
       </div>
       <div class="card" style="padding:20px 18px">
@@ -1300,24 +1301,22 @@ function playFunnel(r){
 
   function showFunnelResult(){
     const gotBonus=chosen===r.brokenStage;
-    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
-    const chosenSuspect=r.suspects.find(s=>s.id===chosen);
-    const correctSuspect=r.suspects.find(s=>s.id===r.brokenStage);
-    const suspectsHtml=r.suspects.map(s=>`
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r-sm);background:${s.id===r.brokenStage?'rgba(244,196,48,0.08)':s.id===chosen&&!gotBonus?'rgba(239,68,68,0.08)':'var(--surface-2)'};border:1px solid ${s.id===r.brokenStage?'rgba(244,196,48,0.3)':s.id===chosen&&!gotBonus?'rgba(239,68,68,0.3)':'var(--border)'}">
-        <span style="font-size:18px">${s.icon}</span>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600">${s.label}${s.id===r.brokenStage?' ← LA FUGA':''}</div>
-        <div style="font-size:12px;color:var(--text-3);margin-top:4px">${s.clue}</div></div>
-      </div>`).join('');
+    const bonus=gotBonus?(r.xpBonus||0):0;
+    const xp=(r.xpBase||0)+bonus;
+    const elegida=r.suspects.find(s=>s.id===chosen);
+    /* Sin veredicto. Antes decia '¡Correcto! La fuga estaba en X' y marcaba
+       '← LA FUGA' sobre el sospechoso bueno, dando la respuesta hecha. */
     app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Resultado</div>
-        <div class="card-title">${gotBonus?'¡Correcto! La fuga estaba en '+(correctSuspect?correctSuspect.label:'')+'.':'La fuga no estaba en '+(chosenSuspect?chosenSuspect.label:'')+'.'}
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">${suspectsHtml}</div>
-        <div style="margin-top:16px"><button class="btn btn-primary" id="finish-btn">Ver mis XP →</button></div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:44px;margin:8px 0 14px">${elegida?elegida.icon:'📩'}</div>
+        <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:14px">¡Hemos recibido tu respuesta!</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:16px">Has señalado <b>${elegida?elegida.label:''}</b> como el punto donde se rompe el embudo.</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:22px">No te vamos a decir todavía si has acertado. El 23 de septiembre lo vemos juntos: dónde estaba la fuga de verdad, y por qué se escapa tanta gente justo en ese punto.</div>
+        <div style="padding:16px;border-radius:12px;background:var(--surface-3);font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:22px">Guardamos tu respuesta. El 23 de septiembre lo desmontamos entero.</div>
+        <button class="btn btn-primary" id="finish-btn" style="width:100%">Continuar →</button>
       </div>`,xp);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+    initRetoClose(r);
+    $('finish-btn').addEventListener('click',function(){completeReto(r,xp,bonus,gotBonus);});
   }
   render();
 }
