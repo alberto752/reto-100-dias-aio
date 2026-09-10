@@ -479,7 +479,7 @@ const RETOS = [
   id:'r6', profile:'agent', date:'2026-09-22', dayLabel:'Martes 22 sep',
   title:'El farol', emoji:'🃏', type:'bluff',
   xpBase:50, xpBonus:50,
-  intro:'Tienes una exclusiva de 400.000€. Otro agente te dice que tiene al comprador.',
+  intro:'Llevas semanas trabajando una exclusiva de 400.000€. Justo cuando por fin tienes movimiento, te llega un mensaje de otro agente: dice que él ya tiene al comprador.',
   options:[
     {id:'A', label:'No colaboro. El comprador es mío.'},
     {id:'B', label:'Dividimos la operación.'},
@@ -487,7 +487,7 @@ const RETOS = [
     {id:'D', label:'Investigo primero qué tiene el otro agente.'},
   ],
   round1:{
-    scenario:'Tienes una exclusiva de 400.000€. Otro agente te dice que tiene al comprador. ¿Qué haces?',
+    scenario:'¿Le crees? Y sobre todo: ¿qué haces con tu exclusiva ahora mismo?',
     metrics:{
       A:{tiempo:'Alto',  comision:'100%',     prob:'30%'},
       B:{tiempo:'Medio', comision:'50%',      prob:'65%'},
@@ -1420,9 +1420,8 @@ function playBluff(r){
     app.innerHTML=retoShellHtml(r,`
       <div class="card">
         <div class="card-eye">Ronda 1 de 2</div>
-        <div class="card-title">${r.round1.scenario}</div>
-        <div class="card-desc">${r.intro}</div>
-        <div style="font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:12px">¿Qué haces?</div>
+        <div class="card-desc" style="margin-bottom:18px">${r.intro}</div>
+        <div class="card-title" style="font-size:19px;line-height:1.35;margin-bottom:14px">${r.round1.scenario}</div>
         <div class="path-opts" id="opts1">${optsHtml}</div>
       </div>`);
     initRetoClose(r);
@@ -1477,35 +1476,43 @@ function playBluff(r){
 
   function showBluffResult(){
     const gotBonus=round2Answer===r.correctOption;
-    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
-    const changed=round1Answer!==round2Answer;
+    const bonus=gotBonus?(r.xpBonus||0):0;
+    const xp=(r.xpBase||0)+bonus;
+    const cambio=round1Answer!==round2Answer;
     const opt2=r.round2.metrics[round2Answer];
+    /* Sin veredicto. Antes el titulo decia 'Decision optima en la ronda 2' o
+       '¿Era la mejor jugada?' y ademas pintaba de dorado la opcion elegida
+       cuando era la buena. Lo de mantuvo/cambio si se queda: es un hecho de lo
+       que hizo el usuario, no un juicio sobre si acerto. */
     app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Resultado</div>
-        <div class="card-title">${gotBonus?'Decisión óptima en la ronda 2.':'¿Era la mejor jugada?'}</div>
-        <div style="display:flex;gap:12px;margin-bottom:16px">
-          <div style="flex:1;padding:10px;background:var(--surface-2);border-radius:var(--r-sm);text-align:center">
+      <div class="card" style="text-align:center">
+        <div style="font-size:44px;margin:8px 0 12px">🃏</div>
+        <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:10px">¡Hemos recibido tu respuesta!</div>
+        <div style="font-size:14px;color:var(--text-2);margin-bottom:20px">${cambio?'Cambiaste de estrategia al ver la nueva información.':'Mantuviste tu decisión inicial.'}</div>
+        <div style="display:flex;gap:12px;margin-bottom:18px;text-align:center">
+          <div style="flex:1;padding:10px;background:var(--surface-2);border-radius:var(--r-sm)">
             <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">Ronda 1</div>
             <div style="font-family:var(--font-d);font-size:18px;font-weight:800">${round1Answer}</div>
           </div>
-          <div style="display:flex;align-items:center;font-size:18px;color:var(--text-3)">${changed?'→ cambiaste':'= mantuviste'}</div>
-          <div style="flex:1;padding:10px;background:var(--surface-2);border-radius:var(--r-sm);text-align:center">
+          <div style="display:flex;align-items:center;font-size:16px;color:var(--text-3)">${cambio?'→':'='}</div>
+          <div style="flex:1;padding:10px;background:var(--surface-2);border-radius:var(--r-sm)">
             <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">Ronda 2</div>
-            <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:${gotBonus?'var(--gold)':'var(--text-1)'}">${round2Answer}</div>
+            <div style="font-family:var(--font-d);font-size:18px;font-weight:800">${round2Answer}</div>
           </div>
         </div>
-        ${opt2?`<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:16px">
-          <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Métricas de tu decisión final</div>
+        ${opt2?`<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:18px">
+          <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Métricas de tu decisión</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-            <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.prob}</div><div style="font-size:10px;color:var(--text-3)">Prob. cierre</div></div>
-            <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.comision}</div><div style="font-size:10px;color:var(--text-3)">Comisión</div></div>
-            <div style="text-align:center"><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.tiempo}</div><div style="font-size:10px;color:var(--text-3)">Tiempo</div></div>
+            <div><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.prob}</div><div style="font-size:10px;color:var(--text-3)">Prob. cierre</div></div>
+            <div><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.comision}</div><div style="font-size:10px;color:var(--text-3)">Comisión</div></div>
+            <div><div style="font-family:var(--font-d);font-size:16px;font-weight:800">${opt2.tiempo}</div><div style="font-size:10px;color:var(--text-3)">Tiempo</div></div>
           </div>
         </div>`:''}
-        <button class="btn btn-primary" id="finish-btn">Ver mis XP →</button>
+        <div style="padding:16px;border-radius:12px;background:var(--surface-3);font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:20px">¿Por qué puede tener sentido? El 23 de septiembre.</div>
+        <button class="btn btn-primary" id="finish-btn" style="width:100%">Continuar →</button>
       </div>`,xp);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+    initRetoClose(r);
+    $('finish-btn').addEventListener('click',function(){completeReto(r,xp,bonus,gotBonus);});
   }
   renderRound1();
 }
