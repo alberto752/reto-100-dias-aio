@@ -371,16 +371,16 @@ const RETOS = [
   agents:[
     {id:'a', emoji:'👩‍💼', name:'Laura Sánchez',  handle:'@laurasanchez.realtor',
      bio:'Te ayudo a encontrar la casa de tus sueños.', seguidores:'2.847', ubicacion:'Madrid', cta:'DM para más información',
-     transmite:{confianza:'ALTA', diferenciacion:'MEDIA', autoridad:'MEDIA', valor:'MEDIO'}},
+     barras:{confianza:58, diferenciacion:18, autoridad:35, valor:20}},
     {id:'b', emoji:'👨‍💼', name:'Marcos Ruiz',    handle:'@marcosruiz.inmobiliario',
      bio:'Te ayudo a vender sin regalar tu casa al primero que aparece.', seguidores:'438', ubicacion:'Valencia', cta:'Hablamos por DM',
-     transmite:{confianza:'ALTA', diferenciacion:'ALTA', autoridad:'MEDIA', valor:'ALTO'}},
+     barras:{confianza:72, diferenciacion:82, autoridad:43, valor:76}},
     {id:'c', emoji:'👩‍💻', name:'Ana Torres',     handle:'@anatorres.proptech',
      bio:'Real Estate | Luxury | Inversiones & propiedades | Business · Lifestyle · Networking', seguidores:'12.400', ubicacion:'Marbella · Madrid · Dubai', cta:'',
-     transmite:{confianza:'MEDIA', autoridad:'ALTA', diferenciacion:'ALTA', valor:'MEDIO'}},
+     barras:{confianza:48, diferenciacion:88, autoridad:86, valor:42}},
     {id:'d', emoji:'👨‍🏫', name:'Roberto Silva',  handle:'@robertosilva.realty',
      bio:'¿Llevas meses intentando vender y nadie pregunta? Te ayudo a conseguir propietarios que sí quieren vender. +75 propiedades vendidas.', seguidores:'913', ubicacion:'España y Andorra', cta:'Escríbeme: VENDER',
-     transmite:{confianza:'ALTA', diferenciacion:'ALTA', autoridad:'ALTA', valor:'ALTA'}},
+     barras:{confianza:91, diferenciacion:93, autoridad:86, valor:94}},
   ],
   correctAgent:'d',
   revealTeaser:'Un agente real digitalizó su operativa y cambió todo. El 23 de septiembre te contamos exactamente cómo y qué resultados obtuvo.',
@@ -830,95 +830,158 @@ function startReto(r){
   }
 }
 
-// ─── R1: ¿A quién le darías tu casa? ──────────────────────────────
+// ─── R1: ¿A quién le darías tu casa? ───────────────────────────────
+/* Flujo del spec: 4 perfiles -> confirmacion -> bloqueo -> resultado.
+   Las valoraciones (confianza, diferenciacion, autoridad, valor) NO se ven
+   antes de elegir: Roberto Silva puntua alto en las cuatro, asi que ensenarlas
+   en la tarjeta regalaba la respuesta. Solo aparecen en el resultado, que es
+   donde el spec las coloca y donde generan la incomodidad que busca el reto. */
 function playAgentPick(r){
-  let selected=null,phase='pick',expanded=null;
-  function render(){
-    function transmiteHtml(t){
-      if(!t)return '';
-      return `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">¿Qué transmite?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${Object.entries(t).map(([k,v])=>`<div style="font-size:11px"><span style="color:var(--text-3)">${k.charAt(0).toUpperCase()+k.slice(1)}: </span><span style="font-weight:700;color:${v==='ALTA'||v==='ALTO'?'var(--success)':v==='BAJA'||v==='BAJO'?'var(--error)':'var(--text-2)'}">${v}</span></div>`).join('')}</div></div>`;
-    }
-    const cardsHtml=r.agents.map(a=>{
-      const isExp=expanded===a.id;
-      const isSel=phase!=='pick'&&a.id===selected;
-      return `<div class="agent-card ${isSel?'selected':''} ${phase==='pick'?'':'agent-card-locked'}" data-aid="${a.id}" style="${phase==='pick'?'cursor:pointer':'cursor:default'}">
+  let selected=null,expanded=null,phase='pick',votos={};
+  const OPTIMO='d';   // Roberto Silva
+  const numSeg=s=>parseInt(String(s).replace(/[^0-9]/g,''),10)||0;
+  const nivel=v=>v>=65?'ALTA':(v>=35?'MEDIA':'BAJA');
+  const colorNivel=v=>v>=65?'var(--success)':(v>=35?'var(--text-2)':'var(--error)');
+  const agente=id=>r.agents.find(a=>a.id===id);
+
+  function barrasHtml(a){
+    const filas=[['Confianza','confianza'],['Diferenciación','diferenciacion'],['Autoridad','autoridad'],['Valor percibido','valor']];
+    return filas.map(function(par){
+      const etq=par[0], v=(a.barras&&a.barras[par[1]])||0;
+      return `<div style="margin-bottom:15px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;margin-bottom:6px">
+          <span style="color:var(--text-2)">${etq}</span>
+          <span style="font-weight:700;color:${colorNivel(v)}">${nivel(v)} · ${v}%</span>
+        </div>
+        <div class="vote-bar" style="margin-top:0"><div class="vote-bar-fill" style="width:${v}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  function tarjetasElegir(){
+    return r.agents.map(function(a){
+      const isExp=expanded===a.id, isSel=a.id===selected;
+      return `<div class="agent-card ${isSel?'selected':''}" data-aid="${a.id}" style="cursor:pointer">
         <div class="agent-card-front" data-expand="${a.id}">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:${isExp?'10px':'0'}">
             <span class="agent-emoji" style="font-size:28px">${a.emoji}</span>
             <div><div class="agent-name" style="font-size:14px">${a.name}</div><div class="agent-handle">${a.handle} · ${a.seguidores} seg.</div></div>
           </div>
-          ${isExp?`<div class="agent-bio" style="margin-bottom:8px">${a.bio}</div>${a.ubicacion?`<div style="font-size:11px;color:var(--text-3);margin-bottom:4px">📍 ${a.ubicacion}</div>`:''}${a.cta?`<div style="font-size:11px;color:var(--text-3);font-style:italic">${a.cta}</div>`:''}${transmiteHtml(a.transmite)}<div style="margin-top:10px"><button class="btn" data-select="${a.id}" style="width:100%;font-size:13px;padding:10px">Elegir este agente</button></div>`:`<div style="font-size:11px;color:var(--text-3);margin-top:4px">Toca para ver el perfil</div>`}
+          ${isExp?`<div class="agent-bio" style="margin-bottom:8px">${a.bio}</div>${a.ubicacion?`<div style="font-size:11px;color:var(--text-3);margin-bottom:4px">📍 ${a.ubicacion}</div>`:''}${a.cta?`<div style="font-size:11px;color:var(--text-3);font-style:italic">${a.cta}</div>`:''}<div style="margin-top:12px"><button class="btn" data-select="${a.id}" style="width:100%;font-size:13px;padding:10px">Reunirme con este agente</button></div>`:`<div style="font-size:11px;color:var(--text-3);margin-top:4px">Toca para ver el perfil</div>`}
         </div>
       </div>`;
     }).join('');
-    const actionHtml=phase==='pick'&&selected?`<button class="btn btn-primary" id="confirm-btn">Confirmar elección →</button>`:(phase==='pick'?`<div style="font-size:12px;color:var(--text-3);text-align:center">Expande cada tarjeta y elige un agente</div>`:'');
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Reto · Día 1</div><div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
-        ${r.subIntro?`<div style="font-size:13px;color:var(--text-3);margin-bottom:16px">${r.subIntro}</div>`:''}
-        <div class="agents-grid">${cardsHtml}</div>
-        <div style="margin-top:16px">${actionHtml}</div>
-      </div>`);
-    initRetoClose(r);
+  }
+
+  function render(){
     if(phase==='pick'){
-      document.querySelectorAll('[data-expand]').forEach(el=>{
-        el.addEventListener('click',(e)=>{
+      app.innerHTML=retoShellHtml(r,`
+        <div class="card"><div class="card-eye">Reto · Día 1</div><div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
+          ${r.subIntro?`<div style="font-size:13px;color:var(--text-3);margin-bottom:16px">${r.subIntro}</div>`:''}
+          <div class="agents-grid">${tarjetasElegir()}</div>
+        </div>`);
+      initRetoClose(r);
+      document.querySelectorAll('[data-expand]').forEach(function(el){
+        el.addEventListener('click',function(e){
           if(e.target.closest('[data-select]'))return;
           const aid=el.dataset.expand;
           expanded=expanded===aid?null:aid;
           render();
         });
       });
-      document.querySelectorAll('[data-select]').forEach(btn=>{
-        btn.addEventListener('click',(e)=>{
+      document.querySelectorAll('[data-select]').forEach(function(btn){
+        btn.addEventListener('click',function(e){
           e.stopPropagation();
           selected=btn.dataset.select;
+          phase='confirm';
           render();
         });
       });
-      $('confirm-btn')?.addEventListener('click',async()=>{
+      return;
+    }
+
+    if(phase==='confirm'){
+      const a=agente(selected);
+      app.innerHTML=retoShellHtml(r,`
+        <div class="card" style="text-align:center">
+          <div style="font-size:44px;margin:10px 0 14px">${a.emoji}</div>
+          <div class="card-title" style="margin-bottom:8px">¿Seguro que quieres reunirte con ${a.name}?</div>
+          <div class="card-desc" style="margin-bottom:22px">Una vez confirmes, tu decisión queda bloqueada.</div>
+          <button class="btn btn-primary" id="confirm-btn" style="width:100%;margin-bottom:10px">Sí, confirmar</button>
+          <button class="btn" id="back-node" style="width:100%">Cambiar de opinión</button>
+        </div>`);
+      initRetoClose(r);
+      $('back-node').addEventListener('click',function(){phase='pick';render();});
+      $('confirm-btn').addEventListener('click',async function(){
+        phase='lock';render();
         try{
           const voteRef=S.db.doc('votes/'+r.id);
           const snap=await voteRef.get();
-          const votes=snap.exists?snap.data():{};
-          votes[selected]=(votes[selected]||0)+1;
-          await voteRef.set(votes);
-        }catch(e){console.error(e);}
-        loadVotesAndReveal();
+          const v=snap.exists?snap.data():{};
+          v[selected]=(v[selected]||0)+1;
+          await voteRef.set(v);
+        }catch(e){console.warn('Voto no registrado en la DB',e);}
+        setTimeout(cargarVotosYRevelar,1200);
       });
+      return;
     }
-  }
 
-  async function loadVotesAndReveal(){
-    let votes={};
-    try{const snap=await S.db.doc('votes/'+r.id).get();if(snap.exists)votes=snap.data();}catch(e){console.error(e);}
-    const total=Object.values(votes).reduce((a,b)=>a+b,0)||1;
-    const cardsHtml=r.agents.map(a=>{
-      const pct=Math.round(((votes[a.id]||0)/total)*100);
-      const isSelected=a.id===selected;
-      return `<div class="agent-card ${isSelected?'selected':''}">
-        <span class="agent-emoji">${a.emoji}</span>
-        <div class="agent-name">${a.name}${isSelected?' (tu voto)':''}</div>
-        <div class="agent-handle">${a.handle}</div>
-        <div class="agent-bio">${a.bio}</div>
-        <div class="vote-bar"><div class="vote-bar-fill" style="width:${pct}%"></div></div>
-        <div class="vote-pct">${pct}% lo eligió</div>
+    if(phase==='lock'){
+      app.innerHTML=retoShellHtml(r,`
+        <div class="card" style="text-align:center;padding:56px 24px">
+          <div style="font-size:52px;margin-bottom:16px">🔒</div>
+          <div class="card-title">Decisión bloqueada</div>
+        </div>`);
+      initRetoClose(r);
+      return;
+    }
+
+    // phase === 'result'
+    const a=agente(selected);
+    const total=Object.values(votos).reduce(function(x,y){return x+y;},0)||1;
+    const masSeguidores=r.agents.reduce(function(m,x){return numSeg(x.seguidores)>numSeg(m.seguidores)?x:m;},r.agents[0]);
+    const comparativa=masSeguidores.id===selected
+      ? `El agente que elegiste es el que más seguidores tiene de los cuatro: <b>${a.seguidores}</b>.`
+      : `El agente que elegiste tiene <b>${a.seguidores}</b> seguidores. Hay otro con <b>${masSeguidores.seguidores}</b> que no elegiste.`;
+    const grupoHtml=r.agents.map(function(x){
+      const pct=Math.round(((votos[x.id]||0)/total)*100);
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span style="color:${x.id===selected?'var(--text-1)':'var(--text-3)'}">${x.emoji} ${x.name}${x.id===selected?' · tu elección':''}</span>
+          <span style="color:var(--text-2);font-variant-numeric:tabular-nums">${pct}%</span>
+        </div>
+        <div class="vote-bar" style="margin-top:0"><div class="vote-bar-fill" style="width:${pct}%"></div></div>
       </div>`;
     }).join('');
-    const xp=r.xpBase;
+    const gotBonus=selected===OPTIMO;
+    const bonus=gotBonus?(r.xpBonus||0):0;
+    const xp=(r.xpBase||0)+bonus;
+
     app.innerHTML=retoShellHtml(r,`
       <div class="card">
-        <div style="text-align:center;padding:20px 0 24px;border-bottom:1px solid var(--border-2);margin-bottom:20px">
-          <div style="font-size:48px;margin-bottom:10px">🗳️</div>
-          <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px">¡Voto registrado!</div>
-          <div style="font-size:14px;color:var(--text-2)">El 23 de septiembre descubrirás si acertaste</div>
+        <div style="text-align:center;padding:8px 0 20px;border-bottom:1px solid var(--border-2);margin-bottom:20px">
+          <div style="font-size:44px;margin-bottom:10px">${a.emoji}</div>
+          <div style="font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:10px">Has elegido a ${a.name}</div>
+          <div style="font-size:14px;color:var(--text-2);line-height:1.55">Pero lo interesante no es a quién has elegido. Es <b>por qué</b> lo has elegido.</div>
         </div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:20px">El 23 de septiembre descubrirás <b>si has acertado (o no)</b> y qué ha hecho que ese perfil te transmita más confianza que los demás.</div>
+        <div class="card-eye" style="margin-bottom:14px">Mientras tanto, mira qué transmite este perfil a primera vista 👇</div>
+        ${barrasHtml(a)}
+        <div style="margin:18px 0 22px;padding:14px 16px;border-radius:12px;background:var(--surface-3);font-size:13px;color:var(--text-2);line-height:1.55">${comparativa}</div>
         <div class="card-eye" style="margin-bottom:12px">Así está votando el grupo</div>
-        <div class="agents-grid">${cardsHtml}</div>
-        <div style="margin-top:16px"><button class="btn btn-primary" id="finish-btn">Ver mis XP →</button></div>
+        ${grupoHtml}
+        <div style="margin-top:20px"><button class="btn btn-primary" id="finish-btn" style="width:100%">Continuar →</button></div>
       </div>`,xp);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,0,false));
+    initRetoClose(r);
+    $('finish-btn').addEventListener('click',function(){completeReto(r,xp,bonus,gotBonus);});
   }
+
+  async function cargarVotosYRevelar(){
+    try{const snap=await S.db.doc('votes/'+r.id).get();if(snap.exists)votos=snap.data();}catch(e){console.warn('Votos no disponibles',e);}
+    phase='result';
+    render();
+  }
+
   render();
 }
 
