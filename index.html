@@ -410,28 +410,65 @@ const RETOS = [
   revealTeaser:'¿Por qué le llegan tantos leads y tan pocos sirven? Lo desmontamos el 23.',
 },
 {
-  id:'r3', profile:'novice', date:'2026-09-19', dayLabel:'Sábado 19 sep',
-  title:'Los 1.000€', emoji:'💰', type:'budget',
-  xpBase:50, xpBonus:50,
-  intro:'Acabas de empezar como agente. Tienes 1.000€ para conseguir tu primera oportunidad. Repártelos como quieras entre estas 5 opciones.',
-  totalBudget:1000,
-  channels:[
-    {id:'fotos',     label:'Fotos profesionales', icon:'📸', desc:'Material visual del inmueble'},
-    {id:'anuncios',  label:'Anuncios',             icon:'📢', desc:'Difusión del inmueble en plataformas'},
-    {id:'videos',    label:'Vídeos',               icon:'🎥', desc:'Contenido audiovisual del inmueble'},
-    {id:'landing',   label:'Landing page',         icon:'🌐', desc:'Página de captación de interesados'},
-    {id:'contactos', label:'Activar contactos',    icon:'🤝', desc:'Prospección en tu red personal'},
-  ],
-  leadOptions:[
-    {id:'A', label:'Llamarlo inmediatamente.'},
-    {id:'B', label:'Mandarle información sobre la propiedad.'},
-    {id:'C', label:'Hacerle una pregunta antes de venderle nada.'},
-    {id:'D', label:'Esperar a que él vuelva a escribir.'},
-  ],
-  correctLead:'C',
-  revealTeaser:'La lógica detrás de esta distribución la explica Javi el 23 de septiembre con datos reales de su operativa.',
-},
-{
+    id:'r3', profile:'novice', date:'2026-09-19', dayLabel:'Sábado 19 sep',
+    title:'¿Dónde está el propietario?', emoji:'🔎', type:'propietario',
+    xpBase:50, xpBonus:50,
+    intro:'Hay un propietario en tu zona que quiere vender. No sabes quién es. Tu misión: conseguir que llegue hasta ti. ¿Por dónde empiezas?',
+    vias:[
+      {id:'contenido',       label:'Contenido',        desc:'Crear contenido para que propietarios interesados te descubran.'},
+      {id:'anuncios',        label:'Anuncios',         desc:'Mostrar un mensaje a quien pueda estar pensando en vender.'},
+      {id:'recomendaciones', label:'Recomendaciones',  desc:'Esperar a que alguien de tu entorno te ponga en contacto.'},
+      {id:'directo',         label:'Contacto directo', desc:'Buscar propietarios y contactar tú.'},
+    ],
+    atencion:{
+      contenido:{
+        texto:'Tu contenido empieza a llegar a propietarios. Uno guarda una publicación. Otro entra en tu perfil. Todavía no te ha escrito. ¿Qué necesitas que ocurra ahora?',
+        opciones:[
+          {id:'A', label:'Que vea todavía más contenido.'},
+          {id:'B', label:'Que tenga un siguiente paso claro.', rec:true},
+          {id:'C', label:'Conseguir más seguidores.'},
+        ]},
+      anuncios:{
+        texto:'Tu anuncio ha llegado a 3.200 personas. 38 han hecho clic. ¿Qué haces con esas personas?',
+        opciones:[
+          {id:'A', label:'Mandarlas directamente a WhatsApp.'},
+          {id:'B', label:'Llevarlas a una página donde puedan valorar su vivienda.', rec:true},
+          {id:'C', label:'Pedirles que te sigan en Instagram.'},
+        ]},
+      recomendaciones:{
+        texto:'Una persona de tu entorno te dice: "Conozco a alguien que quizá quiera vender." Pero todavía no tienes sus datos. ¿Qué necesitas conseguir ahora?',
+        opciones:[
+          {id:'A', label:'Que esa persona te consiga el contacto.', rec:true},
+          {id:'B', label:'Que te recomiende a más gente.'},
+          {id:'C', label:'Que publique tu Instagram.'},
+        ]},
+      directo:{
+        texto:'Has encontrado un propietario que podría estar pensando en vender. Pero todavía no sabes si realmente quiere hacerlo. ¿Qué necesitas descubrir primero?',
+        opciones:[
+          {id:'A', label:'Cuántos seguidores tiene.'},
+          {id:'B', label:'Si realmente existe una intención de venta.', rec:true},
+          {id:'C', label:'Qué precio tiene su vivienda.'},
+        ]},
+    },
+    contacto:{
+      texto:'Has conseguido que un propietario avance. Ahora tienes que conseguir que dé el siguiente paso.',
+      opciones:[
+        {id:'A', label:'Pedirle todos sus datos de golpe.'},
+        {id:'B', label:'Darle una razón concreta para dejar sus datos.', rec:true},
+        {id:'C', label:'Pedirle que te siga para hablar más adelante.'},
+      ]},
+    conversacion:{
+      texto:'Ya tienes el contacto de un propietario. Pero tener su teléfono no significa tener una oportunidad. ¿Qué haces ahora?',
+      opciones:[
+        {id:'A', label:'Le mandas toda la información sobre tus servicios.'},
+        {id:'B', label:'Le preguntas qué quiere conseguir con la venta de su vivienda.', rec:true},
+        {id:'C', label:'Le mandas tu Instagram para que vea quién eres.'},
+        {id:'D', label:'Esperas a que vuelva a escribirte.'},
+      ]},
+    cierre:'Ya has recorrido el camino de un propietario desde que no te conoce hasta el final de la conversación. El 23 de septiembre vemos juntos qué decisiones acercan de verdad a una oportunidad real — y cuáles solo lo parecen.',
+    revealTeaser:'Qué decisiones acercan de verdad a una oportunidad real, y cuáles solo lo parecen. El 23 de septiembre.',
+  },
+  {
   id:'r4', profile:'agent', date:'2026-09-19', dayLabel:'Sábado 19 sep',
   title:'El embudo roto', emoji:'🔍', type:'funnel',
   xpBase:50, xpBonus:50,
@@ -824,7 +861,7 @@ function startReto(r){
   switch(r.type){
     case 'agent-pick':  playAgentPick(r);break;
     case 'agent-clues': playAgentClues(r);break;
-    case 'budget':      playBudget(r);break;
+      case 'propietario': playPropietario(r);break;
     case 'funnel':      playFunnel(r);break;
     case 'graph':       playGraph(r);break;
     case 'bluff':       playBluff(r);break;
@@ -1121,126 +1158,122 @@ function playAgentClues(r){
   render();
 }
 
-// ─── R3: Los 1.000€ ───────────────────────────────────────────────
-function playBudget(r){
-  const alloc={fotos:0,anuncios:0,videos:0,landing:0,contactos:0};
-  let leadChoice=null;
+// ─── R3: ¿Dónde está el propietario? ───────────────────────────────
+/* Sustituye a "Los 1.000€", que premiaba pagar por fotos profesionales, vídeo y
+   landing: justo el modelo que AIO no usa, porque aqui eso se hace uno mismo y
+   solo se invierte en publicidad.
 
-  function calcStats(){
-    const vis=alloc.anuncios*40;
-    const ctr=0.03+(alloc.videos>=150?0.02:0);
-    const clics=Math.round(vis*ctr);
-    const convL=0.20+(alloc.landing>=150?0.15:0);
-    const leads=Math.round(clics*convL);
-    const leadsFrios=Math.round(alloc.contactos/50);
-    const contestan=Math.round(leads*0.30);
-    return{vis,clics,leads,leadsFrios,contestan};
+   Recorrido de decisiones: se elige una de 4 vias de entrada y todas convergen
+   en las mismas fases (atencion -> contacto -> conversacion). Cada fase tiene
+   una opcion recomendada, pero el veredicto no se ensena: se guarda para el 23. */
+function playPropietario(r){
+  let via=null, paso='via';
+  const elegido={};   // fase -> id de la opcion elegida
+  const FASES=['atencion','contacto','conversacion'];
+
+  const bloque=fase=>fase==='atencion'?r.atencion[via]:r[fase];
+  const opcionDe=fase=>{
+    const b=bloque(fase);
+    return b&&b.opciones.find(o=>o.id===elegido[fase]);
+  };
+
+  function opcionesHtml(opciones){
+    return opciones.map(function(o){
+      return `<button class="path-opt" data-oid="${o.id}"><span class="path-letter">${o.id}</span><span>${o.label}</span></button>`;
+    }).join('');
+  }
+
+  function pantalla({eyebrow, entradilla, pregunta, opciones, onPick}){
+    app.innerHTML=retoShellHtml(r,`
+      <div class="card">
+        <div class="card-eye">${eyebrow}</div>
+        ${entradilla?`<div style="font-size:13px;color:var(--text-3);margin-bottom:12px">${entradilla}</div>`:''}
+        <div class="card-title" style="font-size:18px;line-height:1.4;margin-bottom:16px">${pregunta}</div>
+        <div class="path-opts">${opciones}</div>
+      </div>`);
+    initRetoClose(r);
+    let usado=false;
+    document.querySelectorAll('.path-opt').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        if(usado)return; usado=true;
+        document.querySelectorAll('.path-opt').forEach(function(b){b.setAttribute('data-locked','1');b.style.cursor='default';});
+        btn.classList.add('selected');
+        setTimeout(function(){onPick(btn.dataset.oid);},260);
+      });
+    });
   }
 
   function render(){
-    const spent=Object.values(alloc).reduce((a,b)=>a+b,0);
-    const remaining=r.totalBudget-spent;
-    const channelsHtml=r.channels.map(ch=>{
-      const val=alloc[ch.id]||0;
-      return `<div class="budget-ch">
-        <div class="budget-ch-hdr"><span style="font-size:20px">${ch.icon}</span><span class="budget-ch-name">${ch.label}</span><span class="budget-ch-val">${val}€</span></div>
-        <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">${ch.desc}</div>
-        <input type="range" class="budget-slider" data-ch="${ch.id}" min="0" max="${r.totalBudget}" step="50" value="${val}">
-      </div>`;
-    }).join('');
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Reto · Día 2</div>
-        <div class="card-title">${r.title}</div><div class="card-desc">${r.intro}</div>
-        <div class="budget-remaining"><span class="budget-rem-lbl">Presupuesto restante</span><span class="budget-rem-val" style="color:${remaining<0?'var(--error)':remaining===0?'var(--success)':'var(--silver-2)'}">${remaining}€</span></div>
-        <div class="budget-channels">${channelsHtml}</div>
-        <div style="margin-top:16px">
-          <button class="btn btn-primary" id="submit-budget">Confirmar reparto →</button>
-          <div id="budget-msg" style="font-size:12px;color:${remaining===0?'var(--success)':remaining<0?'var(--error)':'var(--text-3)'};text-align:center;margin-top:8px">${remaining===0?'✓ Presupuesto repartido. Pulsa confirmar.':'Reparte exactamente los '+r.totalBudget+'€ — te quedan '+remaining+'€'}</div>
-        </div>
-      </div>`);
-    initRetoClose(r);
-    document.querySelectorAll('.budget-slider').forEach(sl=>{
-      sl.addEventListener('input',()=>{
-        alloc[sl.dataset.ch]=parseInt(sl.value);
-        const s2=Object.values(alloc).reduce((a,b)=>a+b,0);
-        if(s2>r.totalBudget){alloc[sl.dataset.ch]-=s2-r.totalBudget;sl.value=alloc[sl.dataset.ch];}
-        render();
+    if(paso==='via'){
+      const LETRAS=['A','B','C','D'];
+      const opciones=r.vias.map(function(v,k){
+        return `<button class="path-opt" data-oid="${v.id}"><span class="path-letter">${LETRAS[k]}</span><span><b>${v.label}</b><br><span style="font-size:12px;color:var(--text-3)">${v.desc}</span></span></button>`;
+      }).join('');
+      pantalla({
+        eyebrow:'Reto · Día 2',
+        pregunta:r.intro,
+        opciones:opciones,
+        onPick:function(id){via=id;paso='atencion';render();},
       });
-    });
-    $('submit-budget')?.addEventListener('click',()=>{
-      const s=Object.values(alloc).reduce((a,b)=>a+b,0);
-      if(s===0){const m=$('budget-msg');if(m){m.style.color='var(--error)';m.textContent='Mueve al menos un slider para repartir el presupuesto.';}return;}
-      if(s!==r.totalBudget){const m=$('budget-msg');if(m){m.style.color='var(--error)';m.textContent='Reparte exactamente los '+r.totalBudget+'€ — te quedan '+(r.totalBudget-s)+'€';}return;}
-      showDay1();
-    });
-  }
+      return;
+    }
 
-  function showDay1(){
-    const s=calcStats();
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Resultado · Día 1</div>
-        <div class="card-title">Tu anuncio ha arrancado</div>
-        <div class="budget-result-grid" style="margin-bottom:20px">
-          <div class="budget-result-item"><span class="budget-result-num">${s.vis.toLocaleString()}</span><span class="budget-result-lbl">Visualizaciones</span></div>
-          <div class="budget-result-item"><span class="budget-result-num">${s.clics.toLocaleString()}</span><span class="budget-result-lbl">Clics</span></div>
-        </div>
-        <button class="btn btn-primary" id="to-day2">Día 2 →</button>
-      </div>`);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('to-day2').addEventListener('click',showDay2);
-  }
-
-  function showDay2(){
-    const s=calcStats();
-    app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Resultado · Día 2</div>
-        <div class="card-title">Tus leads</div>
-        <div class="budget-result-grid" style="margin-bottom:8px">
-          <div class="budget-result-item"><span class="budget-result-num">${s.leads}</span><span class="budget-result-lbl">Leads captados</span></div>
-          <div class="budget-result-item"><span class="budget-result-num">${s.contestan}</span><span class="budget-result-lbl">Contestan</span></div>
-        </div>
-        ${s.leadsFrios>0?`<div style="font-size:12px;color:var(--text-3);text-align:center;margin-bottom:14px">+ ${s.leadsFrios} lead${s.leadsFrios!==1?'s':''} frío${s.leadsFrios!==1?'s':''} de tus contactos (no contestan)</div>`:''}
-        <div style="background:var(--gold-dim);border:1px solid rgba(244,196,48,0.2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px">
-          <div style="font-family:var(--font-d);font-size:14px;font-weight:700;margin-bottom:10px">Uno de esos interesados tiene una vivienda real que quiere vender. ¿Qué haces?</div>
-          <div class="path-opts">${r.leadOptions.map(o=>`<button class="path-opt" data-oid="${o.id}"><span class="path-letter">${o.id}</span><span>${o.label}</span></button>`).join('')}</div>
-        </div>
-      </div>`);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    let picked=false;
-    document.querySelectorAll('.path-opt').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        if(picked)return;picked=true;leadChoice=btn.dataset.oid;
-        const ok=leadChoice===r.correctLead;
-        document.querySelectorAll('.path-opt').forEach(b=>{b.setAttribute('data-locked','1');b.style.cursor='default';});
-        btn.setAttribute(ok?'data-correct':'data-wrong','1');
-        if(!ok)document.querySelector('[data-oid="'+r.correctLead+'"]').setAttribute('data-correct','1');
-        setTimeout(showFinalResult,900);
+    if(paso==='atencion'){
+      const b=r.atencion[via];
+      pantalla({
+        eyebrow:'La atención',
+        pregunta:b.texto,
+        opciones:opcionesHtml(b.opciones),
+        onPick:function(id){elegido.atencion=id;paso='contacto';render();},
       });
-    });
-  }
+      return;
+    }
 
-  function showFinalResult(){
-    const s=calcStats();
-    const probBase={C:70,B:45,A:30,D:20}[leadChoice]||0;
-    const bonusFotos=alloc.fotos>=150?20:0;
-    const probFinal=probBase+bonusFotos;
-    const exito=probFinal>=70;
-    const gotBonus=exito;
-    const xp=r.xpBase+(gotBonus?r.xpBonus:0);
-    const equilibrado=r.channels.every(ch=>(alloc[ch.id]||0)>0&&(alloc[ch.id]||0)<600);
+    if(paso==='contacto'){
+      pantalla({
+        eyebrow:'El contacto',
+        pregunta:r.contacto.texto,
+        opciones:opcionesHtml(r.contacto.opciones),
+        onPick:function(id){elegido.contacto=id;paso='conversacion';render();},
+      });
+      return;
+    }
+
+    if(paso==='conversacion'){
+      pantalla({
+        eyebrow:'La conversación',
+        entradilla:'Has conseguido un contacto.',
+        pregunta:r.conversacion.texto,
+        opciones:opcionesHtml(r.conversacion.opciones),
+        onPick:function(id){elegido.conversacion=id;paso='resultado';render();},
+      });
+      return;
+    }
+
+    // resultado
+    const rec=FASES.filter(function(f){const o=opcionDe(f);return !!(o&&o.rec);}).length;
+    const gotBonus=rec>=2;                    // "la mayoria de decisiones recomendadas"
+    const bonus=gotBonus?(r.xpBonus||0):0;
+    const xp=(r.xpBase||0)+bonus;
+    /* Matiz narrativo del spec para la ultima decision. No dice si acerto: cuenta
+       que paso con el propietario. El veredicto va entero al 23. */
+    const matiz=elegido.conversacion==='B'
+      ? 'El propietario empieza a contarte su situación.'
+      : 'Has conseguido el contacto, pero has intentado avanzar demasiado rápido.';
+
     app.innerHTML=retoShellHtml(r,`
-      <div class="card"><div class="card-eye">Resultado final</div>
-        <div class="card-title">${exito?'🏆 Has generado una oportunidad.':'💀 Has quemado tu oportunidad.'}</div>
-        <div class="card-desc" style="margin-bottom:16px">${exito&&equilibrado?'…incluso sin usar todo el presupuesto en un único frente.':!exito?'El lead estaba ahí. Falló la forma de reaccionar.':''}</div>
-        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:16px">
-          <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Tu distribución</div>
-          ${r.channels.map(ch=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${ch.icon} ${ch.label}</span><span style="font-family:var(--font-d);font-weight:700">${alloc[ch.id]||0}€</span></div>`).join('')}
-        </div>
-        <button class="btn btn-primary" id="finish-btn">Ver mis XP →</button>
+      <div class="card" style="text-align:center">
+        <div style="font-size:44px;margin:8px 0 14px">🔎</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:18px">${matiz}</div>
+        <div style="font-family:var(--font-d);font-size:20px;font-weight:800;line-height:1.35;margin-bottom:14px">Has llegado hasta el final de tu recorrido con este propietario.</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:22px">No te vamos a decir todavía si conseguiste la conversación real o si le perdiste por el camino. El 23 de septiembre lo vemos juntos, decisión por decisión.</div>
+        <div style="padding:16px;border-radius:12px;background:var(--surface-3);font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:22px">${r.cierre}</div>
+        <button class="btn btn-primary" id="finish-btn" style="width:100%">Continuar →</button>
       </div>`,xp);
-    $('rc').addEventListener('click',()=>{if(confirm('¿Salir?'))goBackToDash();});
-    $('finish-btn').addEventListener('click',()=>completeReto(r,xp,r.xpBonus,gotBonus));
+    initRetoClose(r);
+    $('finish-btn').addEventListener('click',function(){completeReto(r,xp,bonus,gotBonus);});
   }
+
   render();
 }
 
